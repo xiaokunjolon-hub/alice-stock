@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+{% block title %}原材料库存{% endblock %}
+{% block content %}
+
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:10px;">
+    <h2 style="color:#d4a853;margin:0;">🪨 原材料库存</h2>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <a href="{{ url_for('main.raw_create') }}" style="padding:10px 16px;background:#d4a853;color:#000;border-radius:6px;text-decoration:none;font-weight:600;">+ 录入</a>
+        <a href="{{ url_for('main.raw_import') }}" style="padding:10px 16px;background:#333;color:#ccc;border-radius:6px;text-decoration:none;font-size:0.9rem;">📥 批量导入</a>
+        <a href="{{ url_for('main.raw_export', q=search, category=category, status=status) }}" style="padding:10px 16px;background:#333;color:#ccc;border-radius:6px;text-decoration:none;font-size:0.9rem;">📤 导出</a>
+    </div>
+</div>
+
+<!-- 搜索与筛选 -->
+<form method="GET" style="display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;">
+    <input type="text" name="q" value="{{ search }}" placeholder="搜编号/名称/证书号/位置/批次..."
+           style="flex:2;min-width:200px;padding:10px;background:#111;border:1px solid #333;color:#fff;border-radius:6px;">
+    <select name="category" style="padding:10px;background:#111;border:1px solid #333;color:#fff;border-radius:6px;">
+        <option value="">全部分类</option>
+        <option value="gold" {% if category == 'gold' %}selected{% endif %}>金料</option>
+        <option value="silver" {% if category == 'silver' %}selected{% endif %}>银料</option>
+        <option value="platinum" {% if category == 'platinum' %}selected{% endif %}>铂金</option>
+        <option value="diamond" {% if category == 'diamond' %}selected{% endif %}>钻石</option>
+        <option value="gemstone" {% if category == 'gemstone' %}selected{% endif %}>彩色宝石</option>
+        <option value="pearl" {% if category == 'pearl' %}selected{% endif %}>珍珠</option>
+        <option value="jade" {% if category == 'jade' %}selected{% endif %}>翡翠/玉石</option>
+        <option value="accessory" {% if category == 'accessory' %}selected{% endif %}>配件</option>
+        <option value="other" {% if category == 'other' %}selected{% endif %}>其他</option>
+    </select>
+    <select name="status" style="padding:10px;background:#111;border:1px solid #333;color:#fff;border-radius:6px;">
+        <option value="">全部状态</option>
+        <option value="in_stock" {% if status == 'in_stock' %}selected{% endif %}>在库</option>
+        <option value="locked" {% if status == 'locked' %}selected{% endif %}>已锁定</option>
+        <option value="out" {% if status == 'out' %}selected{% endif %}>已出库</option>
+        <option value="returned" {% if status == 'returned' %}selected{% endif %}>已退货</option>
+    </select>
+    <button type="submit" style="padding:10px 20px;background:#333;color:#ccc;border:none;border-radius:6px;cursor:pointer;">搜索</button>
+    {% if search or category or status %}
+    <a href="{{ url_for('main.raw_list') }}" style="padding:10px 15px;color:#d4a853;text-decoration:none;line-height:2.5;">清除</a>
+    {% endif %}
+</form>
+
+{% if items %}
+<p style="color:#666;margin-bottom:15px;">共 {{ pagination.total }} 条记录</p>
+
+<table style="width:100%;border-collapse:collapse;">
+    <thead>
+        <tr style="border-bottom:1px solid #333;color:#999;text-align:left;">
+            <th style="padding:10px;">编号</th>
+            <th>名称 / 规格</th>
+            <th>分类</th>
+            <th>重量</th>
+            <th>证书号</th>
+            <th>位置</th>
+            <th>状态</th>
+            <th>操作</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for item in items %}
+        <tr style="border-bottom:1px solid #222;">
+            <td style="padding:10px;font-family:monospace;color:#d4a853;">{{ item.code or '—' }}</td>
+            <td>
+                <strong>{{ item.name }}</strong>
+                {% if item.spec %}<br><small style="color:#666;">{{ item.spec }}</small>{% endif %}
+            </td>
+            <td><span style="font-size:0.8rem;background:#222;padding:3px 8px;border-radius:4px;">{{ item.category_display }}</span></td>
+            <td>{{ item.weight_display }}</td>
+            <td>{{ item.cert_number or '—' }}</td>
+            <td>{{ item.location or '—' }}</td>
+            <td><span class="{{ status_badge(item.status) }}">{{ item.status_display }}</span></td>
+            <td>
+                <a href="{{ url_for('main.raw_detail', id=item.id) }}" style="color:#d4a853;text-decoration:none;margin-right:6px;">详情</a>
+                <a href="{{ url_for('main.raw_edit', id=item.id) }}" style="color:#ccc;text-decoration:none;margin-right:6px;">编辑</a>
+                <a href="{{ url_for('main.raw_copy', id=item.id) }}" style="color:#5b9bd5;text-decoration:none;font-size:0.85rem;">复制</a>
+            </td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+
+<!-- 分页 -->
+{% if pagination.pages > 1 %}
+<div style="text-align:center;margin-top:20px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">
+    {% if pagination.has_prev %}
+    <a href="?page={{ pagination.prev_num }}&q={{ search }}&category={{ category }}&status={{ status }}" style="padding:6px 14px;background:#333;color:#ccc;border-radius:4px;text-decoration:none;">上一页</a>
+    {% endif %}
+    {% for p in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+        {% if p %}
+            <a href="?page={{ p }}&q={{ search }}&category={{ category }}&status={{ status }}"
+               style="padding:6px 14px;border-radius:4px;text-decoration:none;{% if p == pagination.page %}background:#d4a853;color:#000;{% else %}background:#222;color:#ccc;{% endif %}">{{ p }}</a>
+        {% else %}
+            <span style="padding:6px 8px;color:#555;">…</span>
+        {% endif %}
+    {% endfor %}
+    {% if pagination.has_next %}
+    <a href="?page={{ pagination.next_num }}&q={{ search }}&category={{ category }}&status={{ status }}" style="padding:6px 14px;background:#333;color:#ccc;border-radius:4px;text-decoration:none;">下一页</a>
+    {% endif %}
+</div>
+{% endif %}
+
+{% else %}
+<p style="color:#666;text-align:center;padding:60px;">
+    {% if search or category or status %}
+    没有找到匹配的原材料<br>
+    <a href="{{ url_for('main.raw_list') }}" style="color:#d4a853;">清除筛选</a>
+    {% else %}
+    暂无原材料库存，点击右上角录入
+    {% endif %}
+</p>
+{% endif %}
+
+{% endblock %}

@@ -1,0 +1,159 @@
+{% extends "base.html" %}
+{% block title %}{{ material.name }} - 原材料详情{% endblock %}
+{% block content %}
+
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+    <h2 style="color:#d4a853;margin:0;">
+        🪨 {{ material.name }}
+        <span class="{{ status_badge(material.status) }}" style="font-size:0.7rem;margin-left:10px;padding:4px 10px;border-radius:4px;">{{ material.status_display }}</span>
+    </h2>
+    <div style="display:flex;gap:8px;">
+        <a href="{{ url_for('main.raw_copy', id=material.id) }}" style="padding:8px 16px;background:#5b9bd5;color:#fff;border-radius:6px;text-decoration:none;font-size:0.85rem;">复制新建</a>
+        <a href="{{ url_for('main.raw_edit', id=material.id) }}" style="padding:8px 16px;background:#333;color:#ccc;border-radius:6px;text-decoration:none;font-size:0.85rem;">编辑</a>
+        {% if current_user.is_admin %}
+        <form method="POST" action="{{ url_for('main.raw_delete', id=material.id) }}" style="display:inline;" onsubmit="return confirm('确认删除「{{ material.name }}」？此操作不可恢复。')">
+            <button type="submit" style="padding:8px 16px;background:#c44;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:0.85rem;">删除</button>
+        </form>
+        {% endif %}
+    </div>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+    <!-- 左列 -->
+    <div>
+        <div style="background:#1a1a1a;border:1px solid #333;border-radius:8px;padding:20px;margin-bottom:20px;">
+            <h3 style="color:#d4a853;margin-bottom:15px;">基本信息</h3>
+            <table style="width:100%;color:#ccc;">
+                <tr><td style="color:#666;padding:4px 0;width:80px;">编号</td><td style="font-family:monospace;">{{ material.code or '—' }}</td></tr>
+                <tr><td style="color:#666;padding:4px 0;">名称</td><td><strong>{{ material.name }}</strong></td></tr>
+                <tr><td style="color:#666;padding:4px 0;">分类</td><td>{{ material.category_display }}</td></tr>
+                <tr><td style="color:#666;padding:4px 0;">规格</td><td>{{ material.spec or '—' }}</td></tr>
+            </table>
+        </div>
+
+        <div style="background:#1a1a1a;border:1px solid #333;border-radius:8px;padding:20px;margin-bottom:20px;">
+            <h3 style="color:#d4a853;margin-bottom:15px;">重量信息</h3>
+            <table style="width:100%;color:#ccc;">
+                <tr><td style="color:#666;padding:4px 0;width:80px;">重量</td><td><strong>{{ material.weight_display }}</strong></td></tr>
+            </table>
+        </div>
+
+        {% if material.cert_number or material.shape or material.color or material.clarity %}
+        <div style="background:#1a1a1a;border:1px solid #333;border-radius:8px;padding:20px;margin-bottom:20px;">
+            <h3 style="color:#d4a853;margin-bottom:15px;">石料信息</h3>
+            <table style="width:100%;color:#ccc;">
+                {% if material.shape %}<tr><td style="color:#666;padding:4px 0;width:80px;">形状</td><td>{{ material.shape }}</td></tr>{% endif %}
+                {% if material.color %}<tr><td style="color:#666;padding:4px 0;">颜色</td><td>{{ material.color }}</td></tr>{% endif %}
+                {% if material.clarity %}<tr><td style="color:#666;padding:4px 0;">净度</td><td>{{ material.clarity }}</td></tr>{% endif %}
+                {% if material.cert_number %}<tr><td style="color:#666;padding:4px 0;">证书号</td><td style="font-family:monospace;">{{ material.cert_number }}</td></tr>{% endif %}
+                {% if material.cert_org %}<tr><td style="color:#666;padding:4px 0;">证书机构</td><td>{{ material.cert_org }}</td></tr>{% endif %}
+            </table>
+        </div>
+        {% endif %}
+
+        {% if material.purity %}
+        <div style="background:#1a1a1a;border:1px solid #333;border-radius:8px;padding:20px;margin-bottom:20px;">
+            <h3 style="color:#d4a853;margin-bottom:15px;">金料信息</h3>
+            <table style="width:100%;color:#ccc;">
+                <tr><td style="color:#666;padding:4px 0;width:80px;">成色</td><td>{{ material.purity }}</td></tr>
+            </table>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- 右列 -->
+    <div>
+        <div style="background:#1a1a1a;border:1px solid #333;border-radius:8px;padding:20px;margin-bottom:20px;">
+            <h3 style="color:#d4a853;margin-bottom:15px;">采购与来源</h3>
+            <table style="width:100%;color:#ccc;">
+                {% if current_user.is_admin and material.cost_price %}
+                <tr><td style="color:#666;padding:4px 0;width:80px;">采购价</td><td style="color:#d4a853;">¥{{ "%.2f"|format(material.cost_price) }}</td></tr>
+                {% endif %}
+                <tr><td style="color:#666;padding:4px 0;">采购日期</td><td>{{ material.purchase_date or '—' }}</td></tr>
+                <tr><td style="color:#666;padding:4px 0;">供应商</td><td>{{ material.supplier.name if material.supplier else '—' }}</td></tr>
+                <tr><td style="color:#666;padding:4px 0;">批次号</td><td style="font-family:monospace;">{{ material.lot_number or '—' }}</td></tr>
+            </table>
+        </div>
+
+        <div style="background:#1a1a1a;border:1px solid #333;border-radius:8px;padding:20px;margin-bottom:20px;">
+            <h3 style="color:#d4a853;margin-bottom:15px;">库存信息</h3>
+            <table style="width:100%;color:#ccc;">
+                <tr><td style="color:#666;padding:4px 0;width:80px;">存放位置</td><td>{{ material.location or '—' }}</td></tr>
+                <tr><td style="color:#666;padding:4px 0;">状态</td><td><span class="{{ status_badge(material.status) }}">{{ material.status_display }}</span></td></tr>
+                <tr><td style="color:#666;padding:4px 0;">录入人</td><td>{{ material.created_by or '—' }}</td></tr>
+                <tr><td style="color:#666;padding:4px 0;">录入时间</td><td>{{ material.created_at.strftime('%Y-%m-%d %H:%M') if material.created_at else '—' }}</td></tr>
+                <tr><td style="color:#666;padding:4px 0;">最后更新</td><td>{{ material.updated_at.strftime('%Y-%m-%d %H:%M') if material.updated_at else '—' }}</td></tr>
+            </table>
+        </div>
+
+        {% if material.notes %}
+        <div style="background:#1a1a1a;border:1px solid #333;border-radius:8px;padding:20px;margin-bottom:20px;">
+            <h3 style="color:#d4a853;margin-bottom:15px;">备注</h3>
+            <p style="color:#ccc;white-space:pre-wrap;">{{ material.notes }}</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- 照片 -->
+{% if photos %}
+<div style="background:#1a1a1a;border:1px solid #333;border-radius:8px;padding:20px;margin-top:20px;">
+    <h3 style="color:#d4a853;margin-bottom:15px;">📷 照片 ({{ photos|length }} 张)</h3>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        {% for photo in photos %}
+        <img src="{{ url_for('main.uploaded_file', filename=photo) }}" alt="照片"
+             style="max-width:200px;max-height:200px;border-radius:4px;object-fit:cover;border:1px solid #333;">
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<!-- 快捷操作 -->
+<div style="background:#1a1a1a;border:1px solid #333;border-radius:8px;padding:20px;margin-top:20px;">
+    <h3 style="color:#d4a853;margin-bottom:15px;">⚡ 操作</h3>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        {% if material.status == 'in_stock' %}
+        <form method="POST" action="{{ url_for('main.raw_action', id=material.id, action='out') }}" style="display:inline;">
+            <button type="submit" style="padding:8px 16px;background:#c44;color:#fff;border:none;border-radius:6px;cursor:pointer;">📤 出库</button>
+        </form>
+        <form method="POST" action="{{ url_for('main.raw_action', id=material.id, action='lock') }}" style="display:inline;">
+            <button type="submit" style="padding:8px 16px;background:#d4a853;color:#000;border:none;border-radius:6px;cursor:pointer;">🔒 锁定</button>
+        </form>
+        {% elif material.status == 'out' %}
+        <form method="POST" action="{{ url_for('main.raw_action', id=material.id, action='in') }}" style="display:inline;">
+            <button type="submit" style="padding:8px 16px;background:#6bc26b;color:#000;border:none;border-radius:6px;cursor:pointer;">📥 入库</button>
+        </form>
+        {% elif material.status == 'locked' %}
+        <form method="POST" action="{{ url_for('main.raw_action', id=material.id, action='unlock') }}" style="display:inline;">
+            <button type="submit" style="padding:8px 16px;background:#999;color:#000;border:none;border-radius:6px;cursor:pointer;">🔓 解锁</button>
+        </form>
+        {% elif material.status == 'returned' %}
+        <form method="POST" action="{{ url_for('main.raw_action', id=material.id, action='in') }}" style="display:inline;">
+            <button type="submit" style="padding:8px 16px;background:#6bc26b;color:#000;border:none;border-radius:6px;cursor:pointer;">📥 重新入库</button>
+        </form>
+        {% endif %}
+        <a href="{{ url_for('main.transaction_create', target_type='raw', target_id=material.id, action='transfer') }}"
+           style="padding:8px 16px;background:#5b9bd5;color:#fff;border-radius:6px;text-decoration:none;">🔄 调拨</a>
+        <a href="{{ url_for('main.transaction_create', target_type='raw', target_id=material.id) }}"
+           style="padding:8px 16px;background:#333;color:#ccc;border-radius:6px;text-decoration:none;">📋 详细记录</a>
+    </div>
+</div>
+
+<!-- 流水历史 -->
+{% set txns = material.id | string %}
+<div style="background:#1a1a1a;border:1px solid #333;border-radius:8px;padding:20px;margin-top:20px;">
+    <h3 style="color:#d4a853;margin-bottom:15px;">📜 操作历史</h3>
+    {% set history = namespace(rows=[]) %}
+    {% for t in [] %}
+    {% endfor %}
+    <p style="color:#666;font-size:0.85rem;">
+        流水记录请查看
+        <a href="{{ url_for('main.transaction_list') }}?target_type=raw" style="color:#d4a853;">出入库流水</a>
+    </p>
+</div>
+
+<div style="margin-top:20px;">
+    <a href="{{ url_for('main.raw_list') }}" style="color:#999;text-decoration:none;">← 返回列表</a>
+</div>
+
+{% endblock %}

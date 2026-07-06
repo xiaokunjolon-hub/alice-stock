@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}登录 - 艾丽斯珠宝库存管理{% endblock %}
+{% block content %}
+<div style="max-width:400px;margin:60px auto;">
+    <h2 style="text-align:center;color:#d4a853;margin-bottom:30px;">库存系统登录</h2>
+
+    <form method="POST" style="background:#1a1a1a;border:1px solid #333;border-radius:8px;padding:30px;">
+        <div style="margin-bottom:15px;">
+            <label style="color:#ccc;">用户名</label>
+            <input type="text" name="username" required
+                   style="width:100%;padding:10px;background:#111;border:1px solid #333;color:#fff;border-radius:4px;margin-top:4px;"
+                   autofocus>
+        </div>
+        <div style="margin-bottom:20px;">
+            <label style="color:#ccc;">密码</label>
+            <input type="password" name="password" required
+                   style="width:100%;padding:10px;background:#111;border:1px solid #333;color:#fff;border-radius:4px;margin-top:4px;">
+        </div>
+        <button type="submit"
+                style="width:100%;padding:12px;background:#d4a853;color:#000;border:none;border-radius:6px;font-weight:700;font-size:1rem;cursor:pointer;">
+            登 录
+        </button>
+        <p style="color:#777;font-size:0.8rem;text-align:center;margin-top:15px;">
+            使用大系统账号登录，需管理员开通库存权限
+        </p>
+    </form>
+</div>
+{% endblock %}

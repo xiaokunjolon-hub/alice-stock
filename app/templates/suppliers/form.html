@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block title %}{{ '编辑' if supplier else '添加' }}供应商{% endblock %}
+{% block content %}
+
+<h2 style="color:#d4a853;margin-bottom:20px;">{{ '编辑' if supplier else '添加' }}供应商</h2>
+
+<form method="POST" style="max-width:600px;background:#1a1a1a;border:1px solid #333;border-radius:8px;padding:30px;">
+    <div style="margin-bottom:15px;">
+        <label style="color:#ccc;">名称 <span style="color:#c44;">*</span></label>
+        <input type="text" name="name" value="{{ supplier.name if supplier else '' }}" required
+               style="width:100%;padding:10px;background:#111;border:1px solid #333;color:#fff;border-radius:4px;margin-top:4px;">
+    </div>
+
+    <div style="margin-bottom:15px;">
+        <label style="color:#ccc;">类型</label>
+        <select name="type" style="width:100%;padding:10px;background:#111;border:1px solid #333;color:#fff;border-radius:4px;margin-top:4px;">
+            {% set t = supplier.type if supplier else 'stone' %}
+            <option value="gold" {% if t == 'gold' %}selected{% endif %}>金料供应商</option>
+            <option value="stone" {% if t == 'stone' %}selected{% endif %}>石料供应商</option>
+            <option value="accessory" {% if t == 'accessory' %}selected{% endif %}>配件供应商</option>
+            <option value="outsource" {% if t == 'outsource' %}selected{% endif %}>外包合作</option>
+            <option value="other" {% if t == 'other' %}selected{% endif %}>其他</option>
+        </select>
+    </div>
+
+    <div style="display:flex;gap:15px;margin-bottom:15px;">
+        <div style="flex:1;">
+            <label style="color:#ccc;">联系人</label>
+            <input type="text" name="contact_name" value="{{ supplier.contact_name or '' if supplier else '' }}"
+                   style="width:100%;padding:10px;background:#111;border:1px solid #333;color:#fff;border-radius:4px;margin-top:4px;">
+        </div>
+        <div style="flex:1;">
+            <label style="color:#ccc;">电话</label>
+            <input type="text" name="phone" value="{{ supplier.phone or '' if supplier else '' }}"
+                   style="width:100%;padding:10px;background:#111;border:1px solid #333;color:#fff;border-radius:4px;margin-top:4px;">
+        </div>
+    </div>
+
+    <div style="margin-bottom:15px;">
+        <label style="color:#ccc;">微信</label>
+        <input type="text" name="wechat" value="{{ supplier.wechat or '' if supplier else '' }}"
+               style="width:100%;padding:10px;background:#111;border:1px solid #333;color:#fff;border-radius:4px;margin-top:4px;">
+    </div>
+
+    <div style="margin-bottom:15px;">
+        <label style="color:#ccc;">地址</label>
+        <input type="text" name="address" value="{{ supplier.address or '' if supplier else '' }}"
+               style="width:100%;padding:10px;background:#111;border:1px solid #333;color:#fff;border-radius:4px;margin-top:4px;">
+    </div>
+
+    <div style="margin-bottom:20px;">
+        <label style="color:#ccc;">备注</label>
+        <textarea name="notes" rows="3"
+                  style="width:100%;padding:10px;background:#111;border:1px solid #333;color:#fff;border-radius:4px;margin-top:4px;">{{ supplier.notes or '' if supplier else '' }}</textarea>
+    </div>
+
+    <div style="display:flex;gap:10px;">
+        <button type="submit" style="padding:10px 30px;background:#d4a853;color:#000;border:none;border-radius:6px;font-weight:700;cursor:pointer;">保存</button>
+        <a href="{{ url_for('main.supplier_list') }}" style="padding:10px 20px;background:#333;color:#ccc;border-radius:6px;text-decoration:none;">取消</a>
+    </div>
+</form>
+
+{% endblock %}

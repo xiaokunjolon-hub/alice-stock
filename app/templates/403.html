@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block title %}403 权限不足{% endblock %}
+{% block content %}
+<div style="text-align:center;padding:80px 20px;">
+    <h1 style="font-size:4rem;color:#d4a853;margin:0;">403</h1>
+    <p style="color:#999;font-size:1.2rem;margin-top:10px;">权限不足，无法访问此页面</p>
+    <a href="{{ url_for('main.dashboard') }}" style="color:#d4a853;margin-top:20px;display:inline-block;">← 返回首页</a>
+</div>
+{% endblock %}
