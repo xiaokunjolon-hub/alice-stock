@@ -20,10 +20,31 @@ def create_app(config_class=Config):
     login_manager.login_message = '请先登录'
     login_manager.login_message_category = 'warning'
 
+
+    def _check_workflow_user_active(username):
+        """检查大系统用户是否存在且启用"""
+        import sqlite3
+        db_path = os.environ.get('WORKFLOW_DB_PATH', '')
+        if not db_path or not os.path.exists(db_path):
+            return True
+        try:
+            conn = sqlite3.connect(db_path)
+            row = conn.execute(
+                "SELECT is_active FROM users WHERE username = ?",
+                (username,)
+            ).fetchone()
+            conn.close()
+            return row is not None and row[0]
+        except Exception:
+            return True
+
     @login_manager.user_loader
     def load_user(user_id):
         from app.models import StockUser
-        return StockUser.query.get(int(user_id))
+        stock_user = StockUser.query.get(int(user_id))
+        if stock_user and not _check_workflow_user_active(stock_user.username):
+            return None
+        return stock_user
 
     os.makedirs(app.instance_path, exist_ok=True)
     os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)

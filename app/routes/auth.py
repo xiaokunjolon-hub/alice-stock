@@ -26,6 +26,25 @@ def _decode_jwt():
         return None
 
 
+
+def _check_workflow_user_active(username):
+    """检查大系统用户是否存在且启用"""
+    import sqlite3
+    from flask import current_app
+    db_path = current_app.config.get('WORKFLOW_DB_PATH', '')
+    if not db_path or not os.path.exists(db_path):
+        return True
+    try:
+        conn = sqlite3.connect(db_path)
+        row = conn.execute(
+            "SELECT is_active FROM users WHERE username = ?",
+            (username,)
+        ).fetchone()
+        conn.close()
+        return row is not None and row[0]
+    except Exception:
+        return True
+
 def is_safe_redirect(target):
     """校验重定向目标是否安全（仅允许相对路径或本域名）"""
     host = urlparse(request.host_url)
@@ -43,15 +62,20 @@ def login():
         payload = _decode_jwt()
         if payload and payload.get('username'):
             username = payload['username']
+            # 验证大系统用户存在且启用
+            if not _check_workflow_user_active(username):
+                flash('您的账号已被禁用或删除，请联系管理员', 'warning')
+                return render_template('auth/login.html')
             # 从库存系统权限表查用户
             stock_user = StockUser.query.filter_by(username=username, is_active=True).first()
+            if not stock_user:
+                # 自动创建本地用户（默认 staff 角色）
+                stock_user = StockUser(username=username, role='staff', is_active=True)
+                db.session.add(stock_user)
+                db.session.commit()
             if stock_user:
                 login_user(stock_user)
                 return redirect(url_for('main.dashboard'))
-
-            # 如果权限表里没有，但 SSO 有效，提示
-            if payload.get('user_id'):
-                flash('您的账号尚未开通库存系统权限，请联系管理员', 'warning')
 
     if request.method == 'POST':
         username = request.form.get('username', '').strip()
