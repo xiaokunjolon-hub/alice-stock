@@ -4,7 +4,7 @@
 
 <h2 style="color:#b8973e;margin-bottom:20px;">{{ '编辑' if supplier else '添加' }}供应商</h2>
 
-<form method="POST" style="max-width:600px;background:#fff;border:1px solid #e0e0e0;border-radius:8px;padding:30px;">
+<form method="POST" style="max-width:600px;background:#f5f0e8;border:1px solid #e0e0e0;border-radius:8px;padding:30px;">
     <div style="margin-bottom:15px;">
         <label style="color:#555;">名称 <span style="color:#c44;">*</span></label>
         <input type="text" name="name" value="{{ supplier.name if supplier else '' }}" required

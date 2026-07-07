@@ -5,7 +5,7 @@
 <h2 style="color:#b8973e;margin-bottom:5px;">{{ '编辑' if material and material.id else '录入' }}原材料</h2>
 {% if material and material.id %}<p style="color:#888;margin-bottom:20px;">编号: {{ material.code or '—' }}</p>{% endif %}
 
-<form method="POST" enctype="multipart/form-data" style="max-width:700px;background:#fff;border:1px solid #e0e0e0;border-radius:8px;padding:30px;">
+<form method="POST" enctype="multipart/form-data" style="max-width:700px;background:#f5f0e8;border:1px solid #e0e0e0;border-radius:8px;padding:30px;">
 
     <!-- 基本信息 -->
     <fieldset style="border:1px solid #333;border-radius:6px;padding:15px;margin-bottom:20px;">
