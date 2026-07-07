@@ -8,7 +8,7 @@
 </div>
 
 <form method="GET" style="display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;">
-    <select name="type" style="padding:10px;background:#f5f0e8;border:1px solid #e0e0e0;color:#1a1a1a;border-radius:6px;">
+    <select name="type" style="padding:10px;background:#fff;border:1px solid #e0e0e0;color:#1a1a1a;border-radius:6px;">
         <option value="">全部类型</option>
         <option value="in" {% if type_filter == 'in' %}selected{% endif %}>入库</option>
         <option value="out" {% if type_filter == 'out' %}selected{% endif %}>出库</option>
@@ -17,7 +17,7 @@
         <option value="unlock" {% if type_filter == 'unlock' %}selected{% endif %}>解锁</option>
         <option value="return" {% if type_filter == 'return' %}selected{% endif %}>退货</option>
     </select>
-    <select name="target_type" style="padding:10px;background:#f5f0e8;border:1px solid #e0e0e0;color:#1a1a1a;border-radius:6px;">
+    <select name="target_type" style="padding:10px;background:#fff;border:1px solid #e0e0e0;color:#1a1a1a;border-radius:6px;">
         <option value="">全部类别</option>
         <option value="raw" {% if target_type_filter == 'raw' %}selected{% endif %}>原材料</option>
         <option value="semi" {% if target_type_filter == 'semi' %}selected{% endif %}>半成品</option>
@@ -51,7 +51,7 @@
             <td style="padding:10px;font-size:0.85rem;color:#888;">{{ t.created_at.strftime('%m-%d %H:%M') if t.created_at else '' }}</td>
             <td>
                 {% set type_colors = {'in': '#6bc26b', 'out': '#c44', 'transfer': '#5b9bd5', 'lock': '#d4a853', 'unlock': '#999', 'return': '#c44', 'check_adjust': '#d4a853'} %}
-                <span style="font-size:0.8rem;background:#f5f0e8;color:#555;padding:3px 8px;border-radius:4px;color:{{ type_colors.get(t.type, '#999') }};">{{ t.type_display }}</span>
+                <span style="font-size:0.8rem;background:#fff;color:#555;padding:3px 8px;border-radius:4px;color:{{ type_colors.get(t.type, '#999') }};">{{ t.type_display }}</span>
             </td>
             <td>
                 <a href="{{ url_for('main.transaction_detail', id=t.id) }}" style="color:#b8973e;text-decoration:none;">{{ t.target_name or '—' }}</a>
@@ -77,18 +77,18 @@
 {% if pagination.pages > 1 %}
 <div style="text-align:center;margin-top:20px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">
     {% if pagination.has_prev %}
-    <a href="?page={{ pagination.prev_num }}&type={{ type_filter }}&target_type={{ target_type_filter }}" style="padding:6px 14px;background:#f5f0e8;color:#555;border:1px solid #e0e0e0;border-radius:4px;text-decoration:none;">上一页</a>
+    <a href="?page={{ pagination.prev_num }}&type={{ type_filter }}&target_type={{ target_type_filter }}" style="padding:6px 14px;background:#fff;color:#555;border:1px solid #e0e0e0;border-radius:4px;text-decoration:none;">上一页</a>
     {% endif %}
     {% for p in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
         {% if p %}
             <a href="?page={{ p }}&type={{ type_filter }}&target_type={{ target_type_filter }}"
-               style="padding:6px 14px;border-radius:4px;text-decoration:none;{% if p == pagination.page %}background:#b8973e;color:#fff;{% else %}background:#f5f0e8;color:#555;border:1px solid #e0e0e0;{% endif %}">{{ p }}</a>
+               style="padding:6px 14px;border-radius:4px;text-decoration:none;{% if p == pagination.page %}background:#b8973e;color:#fff;{% else %}background:#fff;color:#555;border:1px solid #e0e0e0;{% endif %}">{{ p }}</a>
         {% else %}
             <span style="padding:6px 8px;color:#555;">…</span>
         {% endif %}
     {% endfor %}
     {% if pagination.has_next %}
-    <a href="?page={{ pagination.next_num }}&type={{ type_filter }}&target_type={{ target_type_filter }}" style="padding:6px 14px;background:#f5f0e8;color:#555;border:1px solid #e0e0e0;border-radius:4px;text-decoration:none;">下一页</a>
+    <a href="?page={{ pagination.next_num }}&type={{ type_filter }}&target_type={{ target_type_filter }}" style="padding:6px 14px;background:#fff;color:#555;border:1px solid #e0e0e0;border-radius:4px;text-decoration:none;">下一页</a>
     {% endif %}
 </div>
 {% endif %}

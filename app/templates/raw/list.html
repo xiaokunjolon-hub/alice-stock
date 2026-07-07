@@ -6,16 +6,16 @@
     <h2 style="color:#b8973e;margin:0;">🪨 原材料库存</h2>
     <div style="display:flex;gap:8px;flex-wrap:wrap;">
         <a href="{{ url_for('main.raw_create') }}" style="padding:10px 16px;background:#b8973e;color:#fff;border-radius:6px;text-decoration:none;font-weight:600;">+ 录入</a>
-        <a href="{{ url_for('main.raw_import') }}" style="padding:10px 16px;background:#f5f0e8;color:#555;border:1px solid #e0e0e0;border-radius:6px;text-decoration:none;font-size:0.9rem;">📥 批量导入</a>
-        <a href="{{ url_for('main.raw_export', q=search, category=category, status=status) }}" style="padding:10px 16px;background:#f5f0e8;color:#555;border:1px solid #e0e0e0;border-radius:6px;text-decoration:none;font-size:0.9rem;">📤 导出</a>
+        <a href="{{ url_for('main.raw_import') }}" style="padding:10px 16px;background:#fff;color:#555;border:1px solid #e0e0e0;border-radius:6px;text-decoration:none;font-size:0.9rem;">📥 批量导入</a>
+        <a href="{{ url_for('main.raw_export', q=search, category=category, status=status) }}" style="padding:10px 16px;background:#fff;color:#555;border:1px solid #e0e0e0;border-radius:6px;text-decoration:none;font-size:0.9rem;">📤 导出</a>
     </div>
 </div>
 
 <!-- 搜索与筛选 -->
 <form method="GET" style="display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;">
     <input type="text" name="q" value="{{ search }}" placeholder="搜编号/名称/证书号/位置/批次..."
-           style="flex:2;min-width:200px;padding:10px;background:#f5f0e8;border:1px solid #e0e0e0;color:#1a1a1a;border-radius:6px;">
-    <select name="category" style="padding:10px;background:#f5f0e8;border:1px solid #e0e0e0;color:#1a1a1a;border-radius:6px;">
+           style="flex:2;min-width:200px;padding:10px;background:#fff;border:1px solid #e0e0e0;color:#1a1a1a;border-radius:6px;">
+    <select name="category" style="padding:10px;background:#fff;border:1px solid #e0e0e0;color:#1a1a1a;border-radius:6px;">
         <option value="">全部分类</option>
         <option value="gold" {% if category == 'gold' %}selected{% endif %}>金料</option>
         <option value="silver" {% if category == 'silver' %}selected{% endif %}>银料</option>
@@ -27,7 +27,7 @@
         <option value="accessory" {% if category == 'accessory' %}selected{% endif %}>配件</option>
         <option value="other" {% if category == 'other' %}selected{% endif %}>其他</option>
     </select>
-    <select name="status" style="padding:10px;background:#f5f0e8;border:1px solid #e0e0e0;color:#1a1a1a;border-radius:6px;">
+    <select name="status" style="padding:10px;background:#fff;border:1px solid #e0e0e0;color:#1a1a1a;border-radius:6px;">
         <option value="">全部状态</option>
         <option value="in_stock" {% if status == 'in_stock' %}selected{% endif %}>在库</option>
         <option value="locked" {% if status == 'locked' %}selected{% endif %}>已锁定</option>
@@ -64,7 +64,7 @@
                 <strong>{{ item.name }}</strong>
                 {% if item.spec %}<br><small style="color:#888;">{{ item.spec }}</small>{% endif %}
             </td>
-            <td><span style="font-size:0.8rem;background:#f5f0e8;color:#555;padding:3px 8px;border-radius:4px;">{{ item.category_display }}</span></td>
+            <td><span style="font-size:0.8rem;background:#fff;color:#555;padding:3px 8px;border-radius:4px;">{{ item.category_display }}</span></td>
             <td>{{ item.weight_display }}</td>
             <td>{{ item.cert_number or '—' }}</td>
             <td>{{ item.location or '—' }}</td>
@@ -83,18 +83,18 @@
 {% if pagination.pages > 1 %}
 <div style="text-align:center;margin-top:20px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">
     {% if pagination.has_prev %}
-    <a href="?page={{ pagination.prev_num }}&q={{ search }}&category={{ category }}&status={{ status }}" style="padding:6px 14px;background:#f5f0e8;color:#555;border:1px solid #e0e0e0;border-radius:4px;text-decoration:none;">上一页</a>
+    <a href="?page={{ pagination.prev_num }}&q={{ search }}&category={{ category }}&status={{ status }}" style="padding:6px 14px;background:#fff;color:#555;border:1px solid #e0e0e0;border-radius:4px;text-decoration:none;">上一页</a>
     {% endif %}
     {% for p in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
         {% if p %}
             <a href="?page={{ p }}&q={{ search }}&category={{ category }}&status={{ status }}"
-               style="padding:6px 14px;border-radius:4px;text-decoration:none;{% if p == pagination.page %}background:#b8973e;color:#fff;{% else %}background:#f5f0e8;color:#555;border:1px solid #e0e0e0;{% endif %}">{{ p }}</a>
+               style="padding:6px 14px;border-radius:4px;text-decoration:none;{% if p == pagination.page %}background:#b8973e;color:#fff;{% else %}background:#fff;color:#555;border:1px solid #e0e0e0;{% endif %}">{{ p }}</a>
         {% else %}
             <span style="padding:6px 8px;color:#555;">…</span>
         {% endif %}
     {% endfor %}
     {% if pagination.has_next %}
-    <a href="?page={{ pagination.next_num }}&q={{ search }}&category={{ category }}&status={{ status }}" style="padding:6px 14px;background:#f5f0e8;color:#555;border:1px solid #e0e0e0;border-radius:4px;text-decoration:none;">下一页</a>
+    <a href="?page={{ pagination.next_num }}&q={{ search }}&category={{ category }}&status={{ status }}" style="padding:6px 14px;background:#fff;color:#555;border:1px solid #e0e0e0;border-radius:4px;text-decoration:none;">下一页</a>
     {% endif %}
 </div>
 {% endif %}

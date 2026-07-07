@@ -10,8 +10,8 @@
 <!-- 搜索与筛选 -->
 <form method="GET" style="display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;">
     <input type="text" name="q" value="{{ search }}" placeholder="搜索名称/联系人/电话..."
-           style="flex:1;min-width:200px;padding:10px;background:#f5f0e8;border:1px solid #e0e0e0;color:#1a1a1a;border-radius:6px;">
-    <select name="type" style="padding:10px;background:#f5f0e8;border:1px solid #e0e0e0;color:#1a1a1a;border-radius:6px;">
+           style="flex:1;min-width:200px;padding:10px;background:#fff;border:1px solid #e0e0e0;color:#1a1a1a;border-radius:6px;">
+    <select name="type" style="padding:10px;background:#fff;border:1px solid #e0e0e0;color:#1a1a1a;border-radius:6px;">
         <option value="">全部类型</option>
         <option value="gold" {% if type_filter == 'gold' %}selected{% endif %}>金料供应商</option>
         <option value="stone" {% if type_filter == 'stone' %}selected{% endif %}>石料供应商</option>
@@ -44,7 +44,7 @@
                 <strong style="color:#b8973e;">{{ s.name }}</strong>
                 {% if s.address %}<br><small style="color:#888;">{{ s.address }}</small>{% endif %}
             </td>
-            <td><span style="font-size:0.8rem;background:#f5f0e8;color:#555;padding:3px 8px;border-radius:4px;">{{ s.type_display }}</span></td>
+            <td><span style="font-size:0.8rem;background:#fff;color:#555;padding:3px 8px;border-radius:4px;">{{ s.type_display }}</span></td>
             <td>{{ s.contact_name or '—' }}</td>
             <td>{{ s.phone or '—' }}</td>
             <td>{{ '启用' if s.is_active else '停用' }}</td>

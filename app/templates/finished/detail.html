@@ -20,7 +20,7 @@
 
 <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
     <div>
-        <div style="background:#f5f0e8;border:1px solid #e0e0e0;border-radius:8px;padding:20px;margin-bottom:20px;">
+        <div style="background:#fff;border:1px solid #e0e0e0;border-radius:8px;padding:20px;margin-bottom:20px;">
             <h3 style="color:#b8973e;margin-bottom:15px;">基本信息</h3>
             <table style="width:100%;color:#555;">
                 <tr><td style="color:#888;padding:4px 0;width:80px;">成品编号</td><td style="font-family:monospace;">{{ product.product_code or '—' }}</td></tr>
@@ -30,7 +30,7 @@
             </table>
         </div>
 
-        <div style="background:#f5f0e8;border:1px solid #e0e0e0;border-radius:8px;padding:20px;margin-bottom:20px;">
+        <div style="background:#fff;border:1px solid #e0e0e0;border-radius:8px;padding:20px;margin-bottom:20px;">
             <h3 style="color:#b8973e;margin-bottom:15px;">重量信息</h3>
             <table style="width:100%;color:#555;">
                 <tr><td style="color:#888;padding:4px 0;width:80px;">金重</td><td>{% if product.gold_weight %}{{ product.gold_weight }} g{% else %}—{% endif %}</td></tr>
@@ -39,7 +39,7 @@
         </div>
 
         {% if product.main_stone or product.side_stones %}
-        <div style="background:#f5f0e8;border:1px solid #e0e0e0;border-radius:8px;padding:20px;margin-bottom:20px;">
+        <div style="background:#fff;border:1px solid #e0e0e0;border-radius:8px;padding:20px;margin-bottom:20px;">
             <h3 style="color:#b8973e;margin-bottom:15px;">宝石信息</h3>
             <table style="width:100%;color:#555;">
                 <tr><td style="color:#888;padding:4px 0;width:80px;">主石</td><td>{{ product.main_stone or '—' }}</td></tr>
@@ -52,7 +52,7 @@
     </div>
 
     <div>
-        <div style="background:#f5f0e8;border:1px solid #e0e0e0;border-radius:8px;padding:20px;margin-bottom:20px;">
+        <div style="background:#fff;border:1px solid #e0e0e0;border-radius:8px;padding:20px;margin-bottom:20px;">
             <h3 style="color:#b8973e;margin-bottom:15px;">成本与售价</h3>
             <table style="width:100%;color:#555;">
                 {% if current_user.is_admin %}
@@ -67,7 +67,7 @@
             </table>
         </div>
 
-        <div style="background:#f5f0e8;border:1px solid #e0e0e0;border-radius:8px;padding:20px;margin-bottom:20px;">
+        <div style="background:#fff;border:1px solid #e0e0e0;border-radius:8px;padding:20px;margin-bottom:20px;">
             <h3 style="color:#b8973e;margin-bottom:15px;">库存信息</h3>
             <table style="width:100%;color:#555;">
                 <tr><td style="color:#888;padding:4px 0;width:80px;">存放位置</td><td>{{ product.location or '—' }}</td></tr>
@@ -80,7 +80,7 @@
         </div>
 
         {% if product.notes %}
-        <div style="background:#f5f0e8;border:1px solid #e0e0e0;border-radius:8px;padding:20px;margin-bottom:20px;">
+        <div style="background:#fff;border:1px solid #e0e0e0;border-radius:8px;padding:20px;margin-bottom:20px;">
             <h3 style="color:#b8973e;margin-bottom:15px;">备注</h3>
             <p style="color:#555;white-space:pre-wrap;">{{ product.notes }}</p>
         </div>
@@ -89,7 +89,7 @@
 </div>
 
 {% if photos %}
-<div style="background:#f5f0e8;border:1px solid #e0e0e0;border-radius:8px;padding:20px;margin-top:20px;">
+<div style="background:#fff;border:1px solid #e0e0e0;border-radius:8px;padding:20px;margin-top:20px;">
     <h3 style="color:#b8973e;margin-bottom:15px;">📷 照片 ({{ photos|length }} 张)</h3>
     <div style="display:flex;gap:10px;flex-wrap:wrap;">
         {% for photo in photos %}
@@ -101,7 +101,7 @@
 {% endif %}
 
 <!-- 快捷操作 -->
-<div style="background:#f5f0e8;border:1px solid #e0e0e0;border-radius:8px;padding:20px;margin-top:20px;">
+<div style="background:#fff;border:1px solid #e0e0e0;border-radius:8px;padding:20px;margin-top:20px;">
     <h3 style="color:#b8973e;margin-bottom:15px;">⚡ 操作</h3>
     <div style="display:flex;gap:10px;flex-wrap:wrap;">
         {% if product.status == 'in_stock' %}
@@ -128,7 +128,7 @@
 </div>
 
 <!-- 流水历史 -->
-<div style="background:#f5f0e8;border:1px solid #e0e0e0;border-radius:8px;padding:20px;margin-top:20px;">
+<div style="background:#fff;border:1px solid #e0e0e0;border-radius:8px;padding:20px;margin-top:20px;">
     <h3 style="color:#b8973e;margin-bottom:15px;">📜 操作历史</h3>
     <p style="color:#888;font-size:0.85rem;">
         流水记录请查看

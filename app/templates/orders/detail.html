@@ -21,7 +21,7 @@
 <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
     <!-- 订单信息 -->
     <div>
-        <div style="background:#f5f0e8;border:1px solid #e0e0e0;border-radius:8px;padding:20px;margin-bottom:20px;">
+        <div style="background:#fff;border:1px solid #e0e0e0;border-radius:8px;padding:20px;margin-bottom:20px;">
             <h3 style="color:#b8973e;margin-bottom:15px;">订单信息</h3>
             <table style="width:100%;color:#555;">
                 <tr><td style="color:#888;padding:4px 0;width:80px;">订单ID</td><td style="font-family:monospace;">{{ order.get('id', '') }}</td></tr>
@@ -35,7 +35,7 @@
             </table>
         </div>
 
-        <div style="background:#f5f0e8;border:1px solid #e0e0e0;border-radius:8px;padding:20px;margin-bottom:20px;">
+        <div style="background:#fff;border:1px solid #e0e0e0;border-radius:8px;padding:20px;margin-bottom:20px;">
             <h3 style="color:#b8973e;margin-bottom:15px;">规格信息</h3>
             <table style="width:100%;color:#555;">
                 <tr><td style="color:#888;padding:4px 0;width:80px;">戒圈</td><td>{{ order.get('ring_size', '') or '—' }}</td></tr>
@@ -47,7 +47,7 @@
 
     <!-- 客户与时间 -->
     <div>
-        <div style="background:#f5f0e8;border:1px solid #e0e0e0;border-radius:8px;padding:20px;margin-bottom:20px;">
+        <div style="background:#fff;border:1px solid #e0e0e0;border-radius:8px;padding:20px;margin-bottom:20px;">
             <h3 style="color:#b8973e;margin-bottom:15px;">客户信息</h3>
             <table style="width:100%;color:#555;">
                 <tr><td style="color:#888;padding:4px 0;width:80px;">客户</td><td><strong>{{ order.get('customer_name', '') or '—' }}</strong></td></tr>
@@ -60,7 +60,7 @@
 
         <!-- 订单石头 -->
         {% if stones %}
-        <div style="background:#f5f0e8;border:1px solid #e0e0e0;border-radius:8px;padding:20px;margin-bottom:20px;">
+        <div style="background:#fff;border:1px solid #e0e0e0;border-radius:8px;padding:20px;margin-bottom:20px;">
             <h3 style="color:#b8973e;margin-bottom:15px;">💎 订单石头 ({{ stones|length }})</h3>
             {% for stone in stones %}
             <div style="background:#222;border-radius:6px;padding:12px;margin-bottom:8px;">
@@ -86,7 +86,7 @@
 </div>
 
 <!-- 关联的库存物料 -->
-<div style="background:#f5f0e8;border:1px solid #e0e0e0;border-radius:8px;padding:20px;margin-top:20px;">
+<div style="background:#fff;border:1px solid #e0e0e0;border-radius:8px;padding:20px;margin-top:20px;">
     <h3 style="color:#b8973e;margin-bottom:15px;">🔗 关联的库存流水 ({{ linked_transactions|length }})</h3>
     {% if linked_transactions %}
     <table style="width:100%;border-collapse:collapse;">
