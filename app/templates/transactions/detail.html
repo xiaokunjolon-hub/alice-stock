@@ -6,7 +6,7 @@
 
 <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
     <div>
-        <div style="background:#fff;border:1px solid #e0e0e0;border-radius:8px;padding:20px;margin-bottom:20px;">
+        <div style="background:#f5f0e8;border:1px solid #e0e0e0;border-radius:8px;padding:20px;margin-bottom:20px;">
             <h3 style="color:#b8973e;margin-bottom:15px;">操作信息</h3>
             <table style="width:100%;color:#555;">
                 <tr><td style="color:#888;padding:4px 0;width:80px;">操作类型</td><td>
@@ -23,7 +23,7 @@
     </div>
 
     <div>
-        <div style="background:#fff;border:1px solid #e0e0e0;border-radius:8px;padding:20px;margin-bottom:20px;">
+        <div style="background:#f5f0e8;border:1px solid #e0e0e0;border-radius:8px;padding:20px;margin-bottom:20px;">
             <h3 style="color:#b8973e;margin-bottom:15px;">流转信息</h3>
             <table style="width:100%;color:#555;">
                 <tr><td style="color:#888;padding:4px 0;width:80px;">来源位置</td><td>{{ trans.from_location or '—' }}</td></tr>
@@ -38,7 +38,7 @@
         </div>
 
         {% if trans.reason %}
-        <div style="background:#fff;border:1px solid #e0e0e0;border-radius:8px;padding:20px;margin-bottom:20px;">
+        <div style="background:#f5f0e8;border:1px solid #e0e0e0;border-radius:8px;padding:20px;margin-bottom:20px;">
             <h3 style="color:#b8973e;margin-bottom:15px;">备注</h3>
             <p style="color:#555;white-space:pre-wrap;">{{ trans.reason }}</p>
         </div>

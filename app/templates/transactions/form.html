@@ -4,14 +4,14 @@
 
 <h2 style="color:#b8973e;margin-bottom:20px;">📋 新增出入库记录</h2>
 
-<form method="POST" style="max-width:600px;background:#fff;border:1px solid #e0e0e0;border-radius:8px;padding:30px;">
+<form method="POST" style="max-width:600px;background:#f5f0e8;border:1px solid #e0e0e0;border-radius:8px;padding:30px;">
 
     <fieldset style="border:1px solid #333;border-radius:6px;padding:15px;margin-bottom:20px;">
         <legend style="color:#b8973e;padding:0 8px;">操作信息</legend>
 
         <div style="margin-bottom:12px;">
             <label style="color:#555;">操作类型 <span style="color:#c44;">*</span></label>
-            <select name="type" required style="width:100%;padding:10px;background:#fff;border:1px solid #e0e0e0;color:#1a1a1a;border-radius:4px;margin-top:4px;">
+            <select name="type" required style="width:100%;padding:10px;background:#f5f0e8;border:1px solid #e0e0e0;color:#1a1a1a;border-radius:4px;margin-top:4px;">
                 <option value="in" {% if prefilled.action == 'in' %}selected{% endif %}>入库 — 物料进入库存</option>
                 <option value="out" {% if prefilled.action == 'out' %}selected{% endif %}>出库 — 物料离开库存</option>
                 <option value="transfer" {% if prefilled.action == 'transfer' %}selected{% endif %}>调拨 — 位置转移</option>
@@ -24,7 +24,7 @@
         <div style="display:flex;gap:15px;margin-bottom:12px;">
             <div style="flex:1;">
                 <label style="color:#555;">物料类别</label>
-                <select name="target_type" style="width:100%;padding:10px;background:#fff;border:1px solid #e0e0e0;color:#1a1a1a;border-radius:4px;margin-top:4px;">
+                <select name="target_type" style="width:100%;padding:10px;background:#f5f0e8;border:1px solid #e0e0e0;color:#1a1a1a;border-radius:4px;margin-top:4px;">
                     <option value="raw" {% if prefilled.target_type == 'raw' %}selected{% endif %}>原材料</option>
                     <option value="semi" {% if prefilled.target_type == 'semi' %}selected{% endif %}>半成品</option>
                     <option value="finished" {% if prefilled.target_type == 'finished' %}selected{% endif %}>成品</option>
@@ -33,7 +33,7 @@
             <div style="flex:1;">
                 <label style="color:#555;">物料ID</label>
                 <input type="number" name="target_id" value="{{ prefilled.target_id }}" required
-                       style="width:100%;padding:10px;background:#fff;border:1px solid #e0e0e0;color:#1a1a1a;border-radius:4px;margin-top:4px;"
+                       style="width:100%;padding:10px;background:#f5f0e8;border:1px solid #e0e0e0;color:#1a1a1a;border-radius:4px;margin-top:4px;"
                        placeholder="在物料详情页URL中查看">
             </div>
         </div>
@@ -46,13 +46,13 @@
             <div style="flex:1;">
                 <label style="color:#555;">重量</label>
                 <input type="number" name="weight" step="0.001"
-                       style="width:100%;padding:10px;background:#fff;border:1px solid #e0e0e0;color:#1a1a1a;border-radius:4px;margin-top:4px;"
+                       style="width:100%;padding:10px;background:#f5f0e8;border:1px solid #e0e0e0;color:#1a1a1a;border-radius:4px;margin-top:4px;"
                        placeholder="留空则使用物料当前重量">
             </div>
             <div style="flex:1;">
                 <label style="color:#555;">关联订单号</label>
                 <input type="text" name="related_order_id" id="orderSearch" autocomplete="off"
-                       style="width:100%;padding:10px;background:#fff;border:1px solid #e0e0e0;color:#1a1a1a;border-radius:4px;margin-top:4px;"
+                       style="width:100%;padding:10px;background:#f5f0e8;border:1px solid #e0e0e0;color:#1a1a1a;border-radius:4px;margin-top:4px;"
                        placeholder="输入订单号或客户名搜索...">
                 <div id="orderSuggestions" style="display:none;background:#222;border:1px solid #333;border-radius:4px;max-height:200px;overflow-y:auto;margin-top:2px;position:absolute;z-index:100;width:100%;"></div>
             </div>
@@ -62,7 +62,7 @@
             <div style="flex:1;">
                 <label style="color:#555;">目标位置（入库/调拨时填写）</label>
                 <input type="text" name="to_location"
-                       style="width:100%;padding:10px;background:#fff;border:1px solid #e0e0e0;color:#1a1a1a;border-radius:4px;margin-top:4px;"
+                       style="width:100%;padding:10px;background:#f5f0e8;border:1px solid #e0e0e0;color:#1a1a1a;border-radius:4px;margin-top:4px;"
                        placeholder="如 保险柜3号 / 展柜A区">
             </div>
         </div>
@@ -70,14 +70,14 @@
         <div style="margin-bottom:12px;">
             <label style="color:#555;">备注 / 原因</label>
             <textarea name="reason" rows="2"
-                      style="width:100%;padding:10px;background:#fff;border:1px solid #e0e0e0;color:#1a1a1a;border-radius:4px;margin-top:4px;"></textarea>
+                      style="width:100%;padding:10px;background:#f5f0e8;border:1px solid #e0e0e0;color:#1a1a1a;border-radius:4px;margin-top:4px;"></textarea>
         </div>
 
         {% if current_user.is_admin %}
         <div>
             <label style="color:#555;">操作时成本 (¥)</label>
             <input type="number" name="cost_recorded" step="0.01"
-                   style="width:100%;padding:10px;background:#fff;border:1px solid #e0e0e0;color:#1a1a1a;border-radius:4px;margin-top:4px;">
+                   style="width:100%;padding:10px;background:#f5f0e8;border:1px solid #e0e0e0;color:#1a1a1a;border-radius:4px;margin-top:4px;">
         </div>
         {% endif %}
     </fieldset>

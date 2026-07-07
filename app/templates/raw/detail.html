@@ -21,7 +21,7 @@
 <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
     <!-- 左列 -->
     <div>
-        <div style="background:#fff;border:1px solid #e0e0e0;border-radius:8px;padding:20px;margin-bottom:20px;">
+        <div style="background:#f5f0e8;border:1px solid #e0e0e0;border-radius:8px;padding:20px;margin-bottom:20px;">
             <h3 style="color:#b8973e;margin-bottom:15px;">基本信息</h3>
             <table style="width:100%;color:#555;">
                 <tr><td style="color:#888;padding:4px 0;width:80px;">编号</td><td style="font-family:monospace;">{{ material.code or '—' }}</td></tr>
@@ -31,7 +31,7 @@
             </table>
         </div>
 
-        <div style="background:#fff;border:1px solid #e0e0e0;border-radius:8px;padding:20px;margin-bottom:20px;">
+        <div style="background:#f5f0e8;border:1px solid #e0e0e0;border-radius:8px;padding:20px;margin-bottom:20px;">
             <h3 style="color:#b8973e;margin-bottom:15px;">重量信息</h3>
             <table style="width:100%;color:#555;">
                 <tr><td style="color:#888;padding:4px 0;width:80px;">重量</td><td><strong>{{ material.weight_display }}</strong></td></tr>
@@ -39,7 +39,7 @@
         </div>
 
         {% if material.cert_number or material.shape or material.color or material.clarity %}
-        <div style="background:#fff;border:1px solid #e0e0e0;border-radius:8px;padding:20px;margin-bottom:20px;">
+        <div style="background:#f5f0e8;border:1px solid #e0e0e0;border-radius:8px;padding:20px;margin-bottom:20px;">
             <h3 style="color:#b8973e;margin-bottom:15px;">石料信息</h3>
             <table style="width:100%;color:#555;">
                 {% if material.shape %}<tr><td style="color:#888;padding:4px 0;width:80px;">形状</td><td>{{ material.shape }}</td></tr>{% endif %}
@@ -52,7 +52,7 @@
         {% endif %}
 
         {% if material.purity %}
-        <div style="background:#fff;border:1px solid #e0e0e0;border-radius:8px;padding:20px;margin-bottom:20px;">
+        <div style="background:#f5f0e8;border:1px solid #e0e0e0;border-radius:8px;padding:20px;margin-bottom:20px;">
             <h3 style="color:#b8973e;margin-bottom:15px;">金料信息</h3>
             <table style="width:100%;color:#555;">
                 <tr><td style="color:#888;padding:4px 0;width:80px;">成色</td><td>{{ material.purity }}</td></tr>
@@ -63,7 +63,7 @@
 
     <!-- 右列 -->
     <div>
-        <div style="background:#fff;border:1px solid #e0e0e0;border-radius:8px;padding:20px;margin-bottom:20px;">
+        <div style="background:#f5f0e8;border:1px solid #e0e0e0;border-radius:8px;padding:20px;margin-bottom:20px;">
             <h3 style="color:#b8973e;margin-bottom:15px;">采购与来源</h3>
             <table style="width:100%;color:#555;">
                 {% if current_user.is_admin and material.cost_price %}
@@ -75,7 +75,7 @@
             </table>
         </div>
 
-        <div style="background:#fff;border:1px solid #e0e0e0;border-radius:8px;padding:20px;margin-bottom:20px;">
+        <div style="background:#f5f0e8;border:1px solid #e0e0e0;border-radius:8px;padding:20px;margin-bottom:20px;">
             <h3 style="color:#b8973e;margin-bottom:15px;">库存信息</h3>
             <table style="width:100%;color:#555;">
                 <tr><td style="color:#888;padding:4px 0;width:80px;">存放位置</td><td>{{ material.location or '—' }}</td></tr>
@@ -87,7 +87,7 @@
         </div>
 
         {% if material.notes %}
-        <div style="background:#fff;border:1px solid #e0e0e0;border-radius:8px;padding:20px;margin-bottom:20px;">
+        <div style="background:#f5f0e8;border:1px solid #e0e0e0;border-radius:8px;padding:20px;margin-bottom:20px;">
             <h3 style="color:#b8973e;margin-bottom:15px;">备注</h3>
             <p style="color:#555;white-space:pre-wrap;">{{ material.notes }}</p>
         </div>
@@ -97,7 +97,7 @@
 
 <!-- 照片 -->
 {% if photos %}
-<div style="background:#fff;border:1px solid #e0e0e0;border-radius:8px;padding:20px;margin-top:20px;">
+<div style="background:#f5f0e8;border:1px solid #e0e0e0;border-radius:8px;padding:20px;margin-top:20px;">
     <h3 style="color:#b8973e;margin-bottom:15px;">📷 照片 ({{ photos|length }} 张)</h3>
     <div style="display:flex;gap:10px;flex-wrap:wrap;">
         {% for photo in photos %}
@@ -109,7 +109,7 @@
 {% endif %}
 
 <!-- 快捷操作 -->
-<div style="background:#fff;border:1px solid #e0e0e0;border-radius:8px;padding:20px;margin-top:20px;">
+<div style="background:#f5f0e8;border:1px solid #e0e0e0;border-radius:8px;padding:20px;margin-top:20px;">
     <h3 style="color:#b8973e;margin-bottom:15px;">⚡ 操作</h3>
     <div style="display:flex;gap:10px;flex-wrap:wrap;">
         {% if material.status == 'in_stock' %}
@@ -141,7 +141,7 @@
 
 <!-- 流水历史 -->
 {% set txns = material.id | string %}
-<div style="background:#fff;border:1px solid #e0e0e0;border-radius:8px;padding:20px;margin-top:20px;">
+<div style="background:#f5f0e8;border:1px solid #e0e0e0;border-radius:8px;padding:20px;margin-top:20px;">
     <h3 style="color:#b8973e;margin-bottom:15px;">📜 操作历史</h3>
     {% set history = namespace(rows=[]) %}
     {% for t in [] %}

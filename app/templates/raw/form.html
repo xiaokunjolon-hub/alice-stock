@@ -5,7 +5,7 @@
 <h2 style="color:#b8973e;margin-bottom:5px;">{{ '编辑' if material and material.id else '录入' }}原材料</h2>
 {% if material and material.id %}<p style="color:#888;margin-bottom:20px;">编号: {{ material.code or '—' }}</p>{% endif %}
 
-<form method="POST" enctype="multipart/form-data" style="max-width:700px;background:#fff;border:1px solid #e0e0e0;border-radius:8px;padding:30px;">
+<form method="POST" enctype="multipart/form-data" style="max-width:700px;background:#f5f0e8;border:1px solid #e0e0e0;border-radius:8px;padding:30px;">
 
     <!-- 基本信息 -->
     <fieldset style="border:1px solid #333;border-radius:6px;padding:15px;margin-bottom:20px;">
@@ -15,20 +15,20 @@
             <div style="flex:1;">
                 <label style="color:#555;">编号</label>
                 <input type="text" name="code" value="{{ material.code or '' if material else '' }}"
-                       style="width:100%;padding:10px;background:#fff;border:1px solid #e0e0e0;color:#1a1a1a;border-radius:4px;margin-top:4px;"
+                       style="width:100%;padding:10px;background:#f5f0e8;border:1px solid #e0e0e0;color:#1a1a1a;border-radius:4px;margin-top:4px;"
                        placeholder="可选，留空自动生成">
             </div>
             <div style="flex:1;">
                 <label style="color:#555;">名称 <span style="color:#c44;">*</span></label>
                 <input type="text" name="name" value="{{ material.name if material else '' }}" required
-                       style="width:100%;padding:10px;background:#fff;border:1px solid #e0e0e0;color:#1a1a1a;border-radius:4px;margin-top:4px;">
+                       style="width:100%;padding:10px;background:#f5f0e8;border:1px solid #e0e0e0;color:#1a1a1a;border-radius:4px;margin-top:4px;">
             </div>
         </div>
 
         <div style="display:flex;gap:15px;margin-bottom:12px;">
             <div style="flex:1;">
                 <label style="color:#555;">分类</label>
-                <select name="category" style="width:100%;padding:10px;background:#fff;border:1px solid #e0e0e0;color:#1a1a1a;border-radius:4px;margin-top:4px;">
+                <select name="category" style="width:100%;padding:10px;background:#f5f0e8;border:1px solid #e0e0e0;color:#1a1a1a;border-radius:4px;margin-top:4px;">
                     {% set cat = material.category if material else 'stone' %}
                     <option value="gold" {% if cat == 'gold' %}selected{% endif %}>金料</option>
                     <option value="silver" {% if cat == 'silver' %}selected{% endif %}>银料</option>
@@ -44,7 +44,7 @@
             <div style="flex:1;">
                 <label style="color:#555;">规格描述</label>
                 <input type="text" name="spec" value="{{ material.spec or '' if material else '' }}"
-                       style="width:100%;padding:10px;background:#fff;border:1px solid #e0e0e0;color:#1a1a1a;border-radius:4px;margin-top:4px;">
+                       style="width:100%;padding:10px;background:#f5f0e8;border:1px solid #e0e0e0;color:#1a1a1a;border-radius:4px;margin-top:4px;">
             </div>
         </div>
     </fieldset>
@@ -56,12 +56,12 @@
             <div style="flex:1;">
                 <label style="color:#555;">重量</label>
                 <input type="number" name="weight" step="0.001" value="{{ material.weight if material and material.weight else '' }}"
-                       style="width:100%;padding:10px;background:#fff;border:1px solid #e0e0e0;color:#1a1a1a;border-radius:4px;margin-top:4px;"
+                       style="width:100%;padding:10px;background:#f5f0e8;border:1px solid #e0e0e0;color:#1a1a1a;border-radius:4px;margin-top:4px;"
                        placeholder="如 1.02">
             </div>
             <div style="flex:1;">
                 <label style="color:#555;">单位</label>
-                <select name="unit" style="width:100%;padding:10px;background:#fff;border:1px solid #e0e0e0;color:#1a1a1a;border-radius:4px;margin-top:4px;">
+                <select name="unit" style="width:100%;padding:10px;background:#f5f0e8;border:1px solid #e0e0e0;color:#1a1a1a;border-radius:4px;margin-top:4px;">
                     {% set u = material.unit if material else 'ct' %}
                     <option value="ct" {% if u == 'ct' %}selected{% endif %}>克拉 (ct)</option>
                     <option value="g" {% if u == 'g' %}selected{% endif %}>克 (g)</option>
@@ -77,7 +77,7 @@
         <div style="display:flex;gap:15px;margin-bottom:12px;">
             <div style="flex:1;">
                 <label style="color:#555;">形状</label>
-                <select name="shape" style="width:100%;padding:10px;background:#fff;border:1px solid #e0e0e0;color:#1a1a1a;border-radius:4px;margin-top:4px;">
+                <select name="shape" style="width:100%;padding:10px;background:#f5f0e8;border:1px solid #e0e0e0;color:#1a1a1a;border-radius:4px;margin-top:4px;">
                     {% set sh = material.shape if material else '' %}
                     <option value="">—</option>
                     <option value="round" {% if sh == 'round' %}selected{% endif %}>圆形</option>
@@ -94,7 +94,7 @@
             <div style="flex:1;">
                 <label style="color:#555;">颜色</label>
                 <input type="text" name="color" value="{{ material.color or '' if material else '' }}"
-                       style="width:100%;padding:10px;background:#fff;border:1px solid #e0e0e0;color:#1a1a1a;border-radius:4px;margin-top:4px;"
+                       style="width:100%;padding:10px;background:#f5f0e8;border:1px solid #e0e0e0;color:#1a1a1a;border-radius:4px;margin-top:4px;"
                        placeholder="如 D / 鸽血红 / 皇家蓝">
             </div>
         </div>
@@ -102,20 +102,20 @@
             <div style="flex:1;">
                 <label style="color:#555;">净度</label>
                 <input type="text" name="clarity" value="{{ material.clarity or '' if material else '' }}"
-                       style="width:100%;padding:10px;background:#fff;border:1px solid #e0e0e0;color:#1a1a1a;border-radius:4px;margin-top:4px;"
+                       style="width:100%;padding:10px;background:#f5f0e8;border:1px solid #e0e0e0;color:#1a1a1a;border-radius:4px;margin-top:4px;"
                        placeholder="如 VVS1 / IF / SI1">
             </div>
             <div style="flex:1;">
                 <label style="color:#555;">证书号</label>
                 <input type="text" name="cert_number" value="{{ material.cert_number or '' if material else '' }}"
-                       style="width:100%;padding:10px;background:#fff;border:1px solid #e0e0e0;color:#1a1a1a;border-radius:4px;margin-top:4px;"
+                       style="width:100%;padding:10px;background:#f5f0e8;border:1px solid #e0e0e0;color:#1a1a1a;border-radius:4px;margin-top:4px;"
                        placeholder="如 GIA1234567890">
             </div>
         </div>
         <div style="margin-bottom:12px;">
             <label style="color:#555;">证书机构</label>
             <input type="text" name="cert_org" value="{{ material.cert_org or '' if material else '' }}"
-                   style="width:100%;padding:10px;background:#fff;border:1px solid #e0e0e0;color:#1a1a1a;border-radius:4px;margin-top:4px;"
+                   style="width:100%;padding:10px;background:#f5f0e8;border:1px solid #e0e0e0;color:#1a1a1a;border-radius:4px;margin-top:4px;"
                    placeholder="如 GIA / IGI / NGTC">
         </div>
     </fieldset>
@@ -125,7 +125,7 @@
         <legend style="color:#b8973e;padding:0 8px;">金料信息（金/银/铂金类填写）</legend>
         <div>
             <label style="color:#555;">成色</label>
-            <select name="purity" style="width:100%;padding:10px;background:#fff;border:1px solid #e0e0e0;color:#1a1a1a;border-radius:4px;margin-top:4px;">
+            <select name="purity" style="width:100%;padding:10px;background:#f5f0e8;border:1px solid #e0e0e0;color:#1a1a1a;border-radius:4px;margin-top:4px;">
                 {% set pu = material.purity if material else '' %}
                 <option value="">—</option>
                 <option value="999" {% if pu == '999' %}selected{% endif %}>999 (足金)</option>
@@ -147,23 +147,23 @@
                 <label style="color:#555;">采购价 (¥)</label>
                 {% if current_user.is_admin %}
                 <input type="number" name="cost_price" step="0.01" value="{{ material.cost_price if material and material.cost_price else '' }}"
-                       style="width:100%;padding:10px;background:#fff;border:1px solid #e0e0e0;color:#1a1a1a;border-radius:4px;margin-top:4px;">
+                       style="width:100%;padding:10px;background:#f5f0e8;border:1px solid #e0e0e0;color:#1a1a1a;border-radius:4px;margin-top:4px;">
                 {% else %}
                 <input type="number" name="cost_price" step="0.01" value="{{ material.cost_price if material and material.cost_price else '' }}" disabled
-                       style="width:100%;padding:10px;background:#fff;border:1px solid #e0e0e0;color:#888;border-radius:4px;margin-top:4px;"
+                       style="width:100%;padding:10px;background:#f5f0e8;border:1px solid #e0e0e0;color:#888;border-radius:4px;margin-top:4px;"
                        title="仅管理员可编辑">
                 {% endif %}
             </div>
             <div style="flex:1;">
                 <label style="color:#555;">采购日期</label>
                 <input type="date" name="purchase_date" value="{{ material.purchase_date if material and material.purchase_date else '' }}"
-                       style="width:100%;padding:10px;background:#fff;border:1px solid #e0e0e0;color:#1a1a1a;border-radius:4px;margin-top:4px;">
+                       style="width:100%;padding:10px;background:#f5f0e8;border:1px solid #e0e0e0;color:#1a1a1a;border-radius:4px;margin-top:4px;">
             </div>
         </div>
         <div style="display:flex;gap:15px;margin-bottom:12px;">
             <div style="flex:1;">
                 <label style="color:#555;">供应商</label>
-                <select name="supplier_id" style="width:100%;padding:10px;background:#fff;border:1px solid #e0e0e0;color:#1a1a1a;border-radius:4px;margin-top:4px;">
+                <select name="supplier_id" style="width:100%;padding:10px;background:#f5f0e8;border:1px solid #e0e0e0;color:#1a1a1a;border-radius:4px;margin-top:4px;">
                     <option value="">—</option>
                     {% for s in suppliers %}
                     <option value="{{ s.id }}" {% if material and material.supplier_id == s.id %}selected{% endif %}>{{ s.name }}</option>
@@ -173,19 +173,19 @@
             <div style="flex:1;">
                 <label style="color:#555;">批次号</label>
                 <input type="text" name="lot_number" value="{{ material.lot_number or '' if material else '' }}"
-                       style="width:100%;padding:10px;background:#fff;border:1px solid #e0e0e0;color:#1a1a1a;border-radius:4px;margin-top:4px;">
+                       style="width:100%;padding:10px;background:#f5f0e8;border:1px solid #e0e0e0;color:#1a1a1a;border-radius:4px;margin-top:4px;">
             </div>
         </div>
         <div style="margin-bottom:12px;">
             <label style="color:#555;">存放位置</label>
             <input type="text" name="location" value="{{ material.location or '' if material else '' }}"
-                   style="width:100%;padding:10px;background:#fff;border:1px solid #e0e0e0;color:#1a1a1a;border-radius:4px;margin-top:4px;"
+                   style="width:100%;padding:10px;background:#f5f0e8;border:1px solid #e0e0e0;color:#1a1a1a;border-radius:4px;margin-top:4px;"
                    placeholder="如 保险柜3号 / 展柜A区">
         </div>
         {% if material and material.id %}
         <div>
             <label style="color:#555;">状态</label>
-            <select name="status" style="width:100%;padding:10px;background:#fff;border:1px solid #e0e0e0;color:#1a1a1a;border-radius:4px;margin-top:4px;">
+            <select name="status" style="width:100%;padding:10px;background:#f5f0e8;border:1px solid #e0e0e0;color:#1a1a1a;border-radius:4px;margin-top:4px;">
                 <option value="in_stock" {% if material.status == 'in_stock' %}selected{% endif %}>在库</option>
                 <option value="locked" {% if material.status == 'locked' %}selected{% endif %}>已锁定</option>
                 <option value="out" {% if material.status == 'out' %}selected{% endif %}>已出库</option>
@@ -210,7 +210,7 @@
     <div style="margin-bottom:20px;">
         <label style="color:#555;">备注</label>
         <textarea name="notes" rows="2"
-                  style="width:100%;padding:10px;background:#fff;border:1px solid #e0e0e0;color:#1a1a1a;border-radius:4px;margin-top:4px;">{{ material.notes or '' if material else '' }}</textarea>
+                  style="width:100%;padding:10px;background:#f5f0e8;border:1px solid #e0e0e0;color:#1a1a1a;border-radius:4px;margin-top:4px;">{{ material.notes or '' if material else '' }}</textarea>
     </div>
 
     <div style="display:flex;gap:10px;">
