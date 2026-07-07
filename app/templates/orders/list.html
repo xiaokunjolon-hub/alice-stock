@@ -3,14 +3,14 @@
 {% block content %}
 
 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
-    <h2 style="color:#d4a853;margin:0;">📋 大系统订单</h2>
-    <span style="color:#666;font-size:0.8rem;">只读浏览 · 来源: 流程管理系统</span>
+    <h2 style="color:#b8973e;margin:0;">📋 大系统订单</h2>
+    <span style="color:#888;font-size:0.8rem;">只读浏览 · 来源: 流程管理系统</span>
 </div>
 
 <form method="GET" style="display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;">
     <input type="text" name="q" value="{{ search }}" placeholder="搜订单号/标题/客户名..."
-           style="flex:2;min-width:200px;padding:10px;background:#111;border:1px solid #333;color:#fff;border-radius:6px;">
-    <select name="status" style="padding:10px;background:#111;border:1px solid #333;color:#fff;border-radius:6px;">
+           style="flex:2;min-width:200px;padding:10px;background:#fff;border:1px solid #e0e0e0;color:#1a1a1a;border-radius:6px;">
+    <select name="status" style="padding:10px;background:#fff;border:1px solid #e0e0e0;color:#1a1a1a;border-radius:6px;">
         <option value="">全部状态</option>
         <option value="pending_design" {% if status == 'pending_design' %}selected{% endif %}>待接单</option>
         <option value="designing" {% if status == 'designing' %}selected{% endif %}>设计中</option>
@@ -21,18 +21,18 @@
         <option value="delivered" {% if status == 'delivered' %}selected{% endif %}>已交付</option>
         <option value="completed" {% if status == 'completed' %}selected{% endif %}>已完成</option>
     </select>
-    <button type="submit" style="padding:10px 20px;background:#333;color:#ccc;border:none;border-radius:6px;cursor:pointer;">搜索</button>
+    <button type="submit" style="padding:10px 20px;background:#b8973e;color:#fff;border:none;border-radius:6px;cursor:pointer;font-weight:600;">搜索</button>
     {% if search or status %}
-    <a href="{{ url_for('main.order_list') }}" style="padding:10px 15px;color:#d4a853;text-decoration:none;line-height:2.5;">清除</a>
+    <a href="{{ url_for('main.order_list') }}" style="padding:10px 15px;color:#b8973e;text-decoration:none;line-height:2.5;">清除</a>
     {% endif %}
 </form>
 
 {% if orders %}
-<p style="color:#666;margin-bottom:15px;">共 {{ pagination.total }} 条订单</p>
+<p style="color:#888;margin-bottom:15px;">共 {{ pagination.total }} 条订单</p>
 
 <table style="width:100%;border-collapse:collapse;">
     <thead>
-        <tr style="border-bottom:1px solid #333;color:#999;text-align:left;">
+        <tr style="border-bottom:2px solid #e0e0e0;color:#888;text-align:left;">
             <th style="padding:10px;">订单号</th>
             <th>标题 / 客户</th>
             <th>类型</th>
@@ -59,15 +59,15 @@
             'pending_sales_receipt': '待店员确认', 'sales_received': '店员已收到',
             'delivered': '已交付', 'completed': '已完成', 'cancelled': '已取消'
         } %}
-        <tr style="border-bottom:1px solid #222;">
-            <td style="padding:10px;font-family:monospace;color:#d4a853;">{{ o.get('custom_order_no', '') or '—' }}</td>
+        <tr style="border-bottom:1px solid #f0f0f0;">
+            <td style="padding:10px;font-family:monospace;color:#b8973e;">{{ o.get('custom_order_no', '') or '—' }}</td>
             <td>
                 <strong>{{ o.get('title', '') or '未命名' }}</strong>
-                {% if o.get('customer_name') %}<br><small style="color:#666;">客户: {{ o.get('customer_name') }}</small>{% endif %}
+                {% if o.get('customer_name') %}<br><small style="color:#888;">客户: {{ o.get('customer_name') }}</small>{% endif %}
             </td>
             <td>
                 {% set dt = o.get('design_type', '') %}
-                <span style="font-size:0.8rem;background:#222;padding:3px 8px;border-radius:4px;">
+                <span style="font-size:0.8rem;background:#f5f0e8;color:#555;padding:3px 8px;border-radius:4px;">
                     {{ {'ring':'戒指','necklace':'项链','bracelet':'手链','earrings':'耳饰','bangle':'手镯','pendant':'吊坠','brooch':'胸针','set':'套装','other':'其他'}.get(dt, dt or '—') }}
                 </span>
             </td>
@@ -82,11 +82,11 @@
                 {% if o.get('linked_stock_count', 0) > 0 %}
                 <span style="color:#6bc26b;font-size:0.85rem;">{{ o.get('linked_stock_count') }} 条关联</span>
                 {% else %}
-                <span style="color:#666;">—</span>
+                <span style="color:#888;">—</span>
                 {% endif %}
             </td>
             <td>
-                <a href="{{ url_for('main.order_detail', order_id=o.get('id')) }}" style="color:#d4a853;text-decoration:none;">详情</a>
+                <a href="{{ url_for('main.order_detail', order_id=o.get('id')) }}" style="color:#b8973e;text-decoration:none;">详情</a>
             </td>
         </tr>
     {% endfor %}
@@ -96,25 +96,25 @@
 {% if pagination.pages > 1 %}
 <div style="text-align:center;margin-top:20px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">
     {% if pagination.has_prev %}
-    <a href="?page={{ pagination.prev_num }}&q={{ search }}&status={{ status }}" style="padding:6px 14px;background:#333;color:#ccc;border-radius:4px;text-decoration:none;">上一页</a>
+    <a href="?page={{ pagination.prev_num }}&q={{ search }}&status={{ status }}" style="padding:6px 14px;background:#fff;color:#555;border:1px solid #e0e0e0;border-radius:4px;text-decoration:none;">上一页</a>
     {% endif %}
     {% for p in range(1, pagination.pages + 1) %}
         {% if p == pagination.page %}
-        <span style="padding:6px 14px;background:#d4a853;color:#000;border-radius:4px;">{{ p }}</span>
+        <span style="padding:6px 14px;background:#b8973e;color:#fff;border-radius:4px;">{{ p }}</span>
         {% elif p <= 3 or p > pagination.pages - 3 or (p >= pagination.page - 2 and p <= pagination.page + 2) %}
-        <a href="?page={{ p }}&q={{ search }}&status={{ status }}" style="padding:6px 14px;background:#222;color:#ccc;border-radius:4px;text-decoration:none;">{{ p }}</a>
+        <a href="?page={{ p }}&q={{ search }}&status={{ status }}" style="padding:6px 14px;background:#fff;color:#555;border:1px solid #e0e0e0;border-radius:4px;text-decoration:none;">{{ p }}</a>
         {% endif %}
     {% endfor %}
     {% if pagination.has_next %}
-    <a href="?page={{ pagination.next_num }}&q={{ search }}&status={{ status }}" style="padding:6px 14px;background:#333;color:#ccc;border-radius:4px;text-decoration:none;">下一页</a>
+    <a href="?page={{ pagination.next_num }}&q={{ search }}&status={{ status }}" style="padding:6px 14px;background:#fff;color:#555;border:1px solid #e0e0e0;border-radius:4px;text-decoration:none;">下一页</a>
     {% endif %}
 </div>
 {% endif %}
 
 {% else %}
-<p style="color:#666;text-align:center;padding:60px;">
+<p style="color:#888;text-align:center;padding:60px;">
     {% if search or status %}
-    没有匹配的订单<br><a href="{{ url_for('main.order_list') }}" style="color:#d4a853;">清除筛选</a>
+    没有匹配的订单<br><a href="{{ url_for('main.order_list') }}" style="color:#b8973e;">清除筛选</a>
     {% else %}
     无法连接大系统数据库或暂无订单<br>
     <small>大系统数据库路径: 查看 config.py 中 WORKFLOW_DB_PATH</small>

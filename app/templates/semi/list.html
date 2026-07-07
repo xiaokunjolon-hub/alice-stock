@@ -3,18 +3,18 @@
 {% block content %}
 
 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:10px;">
-    <h2 style="color:#d4a853;margin:0;">🔧 半成品库存</h2>
+    <h2 style="color:#b8973e;margin:0;">🔧 半成品库存</h2>
     <div style="display:flex;gap:8px;flex-wrap:wrap;">
-        <a href="{{ url_for('main.semi_create') }}" style="padding:10px 16px;background:#d4a853;color:#000;border-radius:6px;text-decoration:none;font-weight:600;">+ 录入</a>
-        <a href="{{ url_for('main.semi_import') }}" style="padding:10px 16px;background:#333;color:#ccc;border-radius:6px;text-decoration:none;font-size:0.9rem;">📥 批量导入</a>
-        <a href="{{ url_for('main.semi_export', q=search, type=type_filter, status=status) }}" style="padding:10px 16px;background:#333;color:#ccc;border-radius:6px;text-decoration:none;font-size:0.9rem;">📤 导出</a>
+        <a href="{{ url_for('main.semi_create') }}" style="padding:10px 16px;background:#b8973e;color:#fff;border-radius:6px;text-decoration:none;font-weight:600;">+ 录入</a>
+        <a href="{{ url_for('main.semi_import') }}" style="padding:10px 16px;background:#fff;color:#555;border:1px solid #e0e0e0;border-radius:6px;text-decoration:none;font-size:0.9rem;">📥 批量导入</a>
+        <a href="{{ url_for('main.semi_export', q=search, type=type_filter, status=status) }}" style="padding:10px 16px;background:#fff;color:#555;border:1px solid #e0e0e0;border-radius:6px;text-decoration:none;font-size:0.9rem;">📤 导出</a>
     </div>
 </div>
 
 <form method="GET" style="display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;">
     <input type="text" name="q" value="{{ search }}" placeholder="搜编号/名称/工匠/位置/订单号..."
-           style="flex:2;min-width:200px;padding:10px;background:#111;border:1px solid #333;color:#fff;border-radius:6px;">
-    <select name="type" style="padding:10px;background:#111;border:1px solid #333;color:#fff;border-radius:6px;">
+           style="flex:2;min-width:200px;padding:10px;background:#fff;border:1px solid #e0e0e0;color:#1a1a1a;border-radius:6px;">
+    <select name="type" style="padding:10px;background:#fff;border:1px solid #e0e0e0;color:#1a1a1a;border-radius:6px;">
         <option value="">全部类型</option>
         <option value="wax_model" {% if type_filter == 'wax_model' %}selected{% endif %}>精膜</option>
         <option value="casting" {% if type_filter == 'casting' %}selected{% endif %}>铸件</option>
@@ -23,25 +23,25 @@
         <option value="outsource" {% if type_filter == 'outsource' %}selected{% endif %}>在外包</option>
         <option value="craftsman" {% if type_filter == 'craftsman' %}selected{% endif %}>在工匠</option>
     </select>
-    <select name="status" style="padding:10px;background:#111;border:1px solid #333;color:#fff;border-radius:6px;">
+    <select name="status" style="padding:10px;background:#fff;border:1px solid #e0e0e0;color:#1a1a1a;border-radius:6px;">
         <option value="">全部状态</option>
         <option value="in_progress" {% if status == 'in_progress' %}selected{% endif %}>制作中</option>
         <option value="pending_check" {% if status == 'pending_check' %}selected{% endif %}>待验收</option>
         <option value="completed" {% if status == 'completed' %}selected{% endif %}>已完成</option>
         <option value="returned" {% if status == 'returned' %}selected{% endif %}>已退回</option>
     </select>
-    <button type="submit" style="padding:10px 20px;background:#333;color:#ccc;border:none;border-radius:6px;cursor:pointer;">搜索</button>
+    <button type="submit" style="padding:10px 20px;background:#b8973e;color:#fff;border:none;border-radius:6px;cursor:pointer;font-weight:600;">搜索</button>
     {% if search or type_filter or status %}
-    <a href="{{ url_for('main.semi_list') }}" style="padding:10px 15px;color:#d4a853;text-decoration:none;line-height:2.5;">清除</a>
+    <a href="{{ url_for('main.semi_list') }}" style="padding:10px 15px;color:#b8973e;text-decoration:none;line-height:2.5;">清除</a>
     {% endif %}
 </form>
 
 {% if items %}
-<p style="color:#666;margin-bottom:15px;">共 {{ pagination.total }} 条记录</p>
+<p style="color:#888;margin-bottom:15px;">共 {{ pagination.total }} 条记录</p>
 
 <table style="width:100%;border-collapse:collapse;">
     <thead>
-        <tr style="border-bottom:1px solid #333;color:#999;text-align:left;">
+        <tr style="border-bottom:2px solid #e0e0e0;color:#888;text-align:left;">
             <th style="padding:10px;">编号</th>
             <th>名称</th>
             <th>类型</th>
@@ -53,20 +53,20 @@
     </thead>
     <tbody>
     {% for item in items %}
-        <tr style="border-bottom:1px solid #222;">
-            <td style="padding:10px;font-family:monospace;color:#d4a853;">{{ item.code or '—' }}</td>
+        <tr style="border-bottom:1px solid #f0f0f0;">
+            <td style="padding:10px;font-family:monospace;color:#b8973e;">{{ item.code or '—' }}</td>
             <td><strong>{{ item.name }}</strong></td>
-            <td><span style="font-size:0.8rem;background:#222;padding:3px 8px;border-radius:4px;">{{ item.type_display }}</span></td>
+            <td><span style="font-size:0.8rem;background:#f5f0e8;color:#555;padding:3px 8px;border-radius:4px;">{{ item.type_display }}</span></td>
             <td>
                 {% if item.craftsman %}{{ item.craftsman }}{% endif %}
-                {% if item.current_location %}<br><small style="color:#666;">{{ item.current_location }}</small>{% endif %}
+                {% if item.current_location %}<br><small style="color:#888;">{{ item.current_location }}</small>{% endif %}
                 {% if not item.craftsman and not item.current_location %}—{% endif %}
             </td>
             <td>{{ item.estimated_complete_date or '—' }}</td>
             <td><span class="{{ status_badge(item.status) }}">{{ item.status_display }}</span></td>
             <td>
-                <a href="{{ url_for('main.semi_detail', id=item.id) }}" style="color:#d4a853;text-decoration:none;margin-right:6px;">详情</a>
-                <a href="{{ url_for('main.semi_edit', id=item.id) }}" style="color:#ccc;text-decoration:none;margin-right:6px;">编辑</a>
+                <a href="{{ url_for('main.semi_detail', id=item.id) }}" style="color:#b8973e;text-decoration:none;margin-right:6px;">详情</a>
+                <a href="{{ url_for('main.semi_edit', id=item.id) }}" style="color:#555;text-decoration:none;margin-right:6px;">编辑</a>
                 <a href="{{ url_for('main.semi_copy', id=item.id) }}" style="color:#5b9bd5;text-decoration:none;font-size:0.85rem;">复制</a>
             </td>
         </tr>
@@ -77,26 +77,26 @@
 {% if pagination.pages > 1 %}
 <div style="text-align:center;margin-top:20px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">
     {% if pagination.has_prev %}
-    <a href="?page={{ pagination.prev_num }}&q={{ search }}&type={{ type_filter }}&status={{ status }}" style="padding:6px 14px;background:#333;color:#ccc;border-radius:4px;text-decoration:none;">上一页</a>
+    <a href="?page={{ pagination.prev_num }}&q={{ search }}&type={{ type_filter }}&status={{ status }}" style="padding:6px 14px;background:#fff;color:#555;border:1px solid #e0e0e0;border-radius:4px;text-decoration:none;">上一页</a>
     {% endif %}
     {% for p in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
         {% if p %}
             <a href="?page={{ p }}&q={{ search }}&type={{ type_filter }}&status={{ status }}"
-               style="padding:6px 14px;border-radius:4px;text-decoration:none;{% if p == pagination.page %}background:#d4a853;color:#000;{% else %}background:#222;color:#ccc;{% endif %}">{{ p }}</a>
+               style="padding:6px 14px;border-radius:4px;text-decoration:none;{% if p == pagination.page %}background:#b8973e;color:#fff;{% else %}background:#fff;color:#555;border:1px solid #e0e0e0;{% endif %}">{{ p }}</a>
         {% else %}
             <span style="padding:6px 8px;color:#555;">…</span>
         {% endif %}
     {% endfor %}
     {% if pagination.has_next %}
-    <a href="?page={{ pagination.next_num }}&q={{ search }}&type={{ type_filter }}&status={{ status }}" style="padding:6px 14px;background:#333;color:#ccc;border-radius:4px;text-decoration:none;">下一页</a>
+    <a href="?page={{ pagination.next_num }}&q={{ search }}&type={{ type_filter }}&status={{ status }}" style="padding:6px 14px;background:#fff;color:#555;border:1px solid #e0e0e0;border-radius:4px;text-decoration:none;">下一页</a>
     {% endif %}
 </div>
 {% endif %}
 
 {% else %}
-<p style="color:#666;text-align:center;padding:60px;">
+<p style="color:#888;text-align:center;padding:60px;">
     {% if search or type_filter or status %}
-    没有找到匹配的半成品<br><a href="{{ url_for('main.semi_list') }}" style="color:#d4a853;">清除筛选</a>
+    没有找到匹配的半成品<br><a href="{{ url_for('main.semi_list') }}" style="color:#b8973e;">清除筛选</a>
     {% else %}
     暂无半成品库存，点击右上角录入
     {% endif %}

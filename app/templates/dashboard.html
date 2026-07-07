@@ -2,14 +2,14 @@
 {% block title %}库存仪表盘{% endblock %}
 {% block content %}
 
-<h2 style="color:#d4a853;">📦 库存概览</h2>
+<h2 style="color:#b8973e;">📦 库存概览</h2>
 
 <!-- 全局搜索 -->
 <form method="GET" action="{{ url_for('main.global_search') }}" style="margin:20px 0;">
     <div style="display:flex;gap:10px;">
         <input type="text" name="q" placeholder="🔍 全局搜索：编号/名称/证书号/位置/工匠/主石..."
-               style="flex:1;padding:12px;background:#111;border:1px solid #333;color:#fff;border-radius:6px;font-size:1rem;">
-        <button type="submit" style="padding:12px 24px;background:#d4a853;color:#000;border:none;border-radius:6px;font-weight:700;cursor:pointer;">搜索</button>
+               style="flex:1;padding:12px;background:#f5f0e8;border:1px solid #e0d8c8;color:#1a1a1a;border-radius:6px;font-size:1rem;">
+        <button type="submit" style="padding:12px 24px;background:#b8973e;color:#fff;border:none;border-radius:6px;font-weight:700;cursor:pointer;">搜索</button>
     </div>
 </form>
 
@@ -37,7 +37,7 @@
     <a href="{{ url_for('main.order_list') }}" class="secondary">大系统订单</a>
 </div>
 
-<div style="color:#666;font-size:0.85rem;margin-top:40px;">
+<div style="color:#888;font-size:0.85rem;margin-top:40px;">
     <p>共计 <strong>{{ stats.total }}</strong> 条库存记录</p>
 </div>
 

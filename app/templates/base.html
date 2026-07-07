@@ -5,20 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}艾丽斯珠宝 · 库存管理{% endblock %}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
-    <style>
-        /* 库存系统额外样式 */
-        .dashboard-stats { display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 30px; }
-        .stat-card { flex: 1; min-width: 180px; background: #1a1a1a; border: 1px solid #333; border-radius: 8px; padding: 20px; text-align: center; }
-        .stat-card .stat-num { font-size: 2.5rem; font-weight: bold; color: #d4a853; }
-        .stat-card .stat-label { color: #999; margin-top: 5px; font-size: 0.9rem; }
-        .stat-card.gold { border-color: #d4a853; }
-        .stat-card.gold .stat-num { color: #d4a853; }
-        .quick-actions { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 30px; }
-        .quick-actions a { padding: 10px 20px; background: #d4a853; color: #000; border-radius: 6px; text-decoration: none; font-weight: 600; font-size: 0.9rem; }
-        .quick-actions a:hover { background: #e0b860; }
-        .quick-actions a.secondary { background: #333; color: #ccc; }
-        .quick-actions a.secondary:hover { background: #444; }
-    </style>
 </head>
 <body>
 

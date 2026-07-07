@@ -2,45 +2,45 @@
 {% block title %}流水详情{% endblock %}
 {% block content %}
 
-<h2 style="color:#d4a853;margin-bottom:20px;">📋 流水记录详情</h2>
+<h2 style="color:#b8973e;margin-bottom:20px;">📋 流水记录详情</h2>
 
 <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
     <div>
-        <div style="background:#1a1a1a;border:1px solid #333;border-radius:8px;padding:20px;margin-bottom:20px;">
-            <h3 style="color:#d4a853;margin-bottom:15px;">操作信息</h3>
-            <table style="width:100%;color:#ccc;">
-                <tr><td style="color:#666;padding:4px 0;width:80px;">操作类型</td><td>
+        <div style="background:#fff;border:1px solid #e0e0e0;border-radius:8px;padding:20px;margin-bottom:20px;">
+            <h3 style="color:#b8973e;margin-bottom:15px;">操作信息</h3>
+            <table style="width:100%;color:#555;">
+                <tr><td style="color:#888;padding:4px 0;width:80px;">操作类型</td><td>
                     {% set type_colors = {'in': '#6bc26b', 'out': '#c44', 'transfer': '#5b9bd5', 'lock': '#d4a853', 'unlock': '#999', 'return': '#c44', 'check_adjust': '#d4a853'} %}
                     <span style="color:{{ type_colors.get(trans.type, '#999') }};font-weight:600;">{{ trans.type_display }}</span>
                 </td></tr>
-                <tr><td style="color:#666;padding:4px 0;">物料名称</td><td><strong>{{ trans.target_name or '—' }}</strong></td></tr>
-                <tr><td style="color:#666;padding:4px 0;">物料类别</td><td>{{ {'raw': '原材料', 'semi': '半成品', 'finished': '成品'}.get(trans.target_type, trans.target_type) }}</td></tr>
-                <tr><td style="color:#666;padding:4px 0;">物料ID</td><td style="font-family:monospace;">{{ trans.target_id }}</td></tr>
-                <tr><td style="color:#666;padding:4px 0;">数量</td><td>{{ trans.quantity or 1 }}</td></tr>
-                <tr><td style="color:#666;padding:4px 0;">重量</td><td>{{ trans.weight if trans.weight else '—' }}</td></tr>
+                <tr><td style="color:#888;padding:4px 0;">物料名称</td><td><strong>{{ trans.target_name or '—' }}</strong></td></tr>
+                <tr><td style="color:#888;padding:4px 0;">物料类别</td><td>{{ {'raw': '原材料', 'semi': '半成品', 'finished': '成品'}.get(trans.target_type, trans.target_type) }}</td></tr>
+                <tr><td style="color:#888;padding:4px 0;">物料ID</td><td style="font-family:monospace;">{{ trans.target_id }}</td></tr>
+                <tr><td style="color:#888;padding:4px 0;">数量</td><td>{{ trans.quantity or 1 }}</td></tr>
+                <tr><td style="color:#888;padding:4px 0;">重量</td><td>{{ trans.weight if trans.weight else '—' }}</td></tr>
             </table>
         </div>
     </div>
 
     <div>
-        <div style="background:#1a1a1a;border:1px solid #333;border-radius:8px;padding:20px;margin-bottom:20px;">
-            <h3 style="color:#d4a853;margin-bottom:15px;">流转信息</h3>
-            <table style="width:100%;color:#ccc;">
-                <tr><td style="color:#666;padding:4px 0;width:80px;">来源位置</td><td>{{ trans.from_location or '—' }}</td></tr>
-                <tr><td style="color:#666;padding:4px 0;">目标位置</td><td>{{ trans.to_location or '—' }}</td></tr>
-                <tr><td style="color:#666;padding:4px 0;">关联订单</td><td>{{ trans.related_order_id or '—' }}</td></tr>
-                <tr><td style="color:#666;padding:4px 0;">操作人</td><td>{{ trans.operator or '—' }}</td></tr>
-                <tr><td style="color:#666;padding:4px 0;">操作时间</td><td>{{ trans.created_at.strftime('%Y-%m-%d %H:%M:%S') if trans.created_at else '—' }}</td></tr>
+        <div style="background:#fff;border:1px solid #e0e0e0;border-radius:8px;padding:20px;margin-bottom:20px;">
+            <h3 style="color:#b8973e;margin-bottom:15px;">流转信息</h3>
+            <table style="width:100%;color:#555;">
+                <tr><td style="color:#888;padding:4px 0;width:80px;">来源位置</td><td>{{ trans.from_location or '—' }}</td></tr>
+                <tr><td style="color:#888;padding:4px 0;">目标位置</td><td>{{ trans.to_location or '—' }}</td></tr>
+                <tr><td style="color:#888;padding:4px 0;">关联订单</td><td>{{ trans.related_order_id or '—' }}</td></tr>
+                <tr><td style="color:#888;padding:4px 0;">操作人</td><td>{{ trans.operator or '—' }}</td></tr>
+                <tr><td style="color:#888;padding:4px 0;">操作时间</td><td>{{ trans.created_at.strftime('%Y-%m-%d %H:%M:%S') if trans.created_at else '—' }}</td></tr>
                 {% if current_user.is_admin and trans.cost_recorded %}
-                <tr><td style="color:#666;padding:4px 0;">操作时成本</td><td style="color:#d4a853;">¥{{ "%.2f"|format(trans.cost_recorded) }}</td></tr>
+                <tr><td style="color:#888;padding:4px 0;">操作时成本</td><td style="color:#b8973e;">¥{{ "%.2f"|format(trans.cost_recorded) }}</td></tr>
                 {% endif %}
             </table>
         </div>
 
         {% if trans.reason %}
-        <div style="background:#1a1a1a;border:1px solid #333;border-radius:8px;padding:20px;margin-bottom:20px;">
-            <h3 style="color:#d4a853;margin-bottom:15px;">备注</h3>
-            <p style="color:#ccc;white-space:pre-wrap;">{{ trans.reason }}</p>
+        <div style="background:#fff;border:1px solid #e0e0e0;border-radius:8px;padding:20px;margin-bottom:20px;">
+            <h3 style="color:#b8973e;margin-bottom:15px;">备注</h3>
+            <p style="color:#555;white-space:pre-wrap;">{{ trans.reason }}</p>
         </div>
         {% endif %}
     </div>

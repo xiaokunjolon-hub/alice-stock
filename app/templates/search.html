@@ -5,13 +5,13 @@
 <div style="margin-bottom:20px;">
     <form method="GET" action="{{ url_for('main.global_search') }}" style="display:flex;gap:10px;">
         <input type="text" name="q" value="{{ q }}" placeholder="全局搜索：编号/名称/证书号/位置/工匠/主石..."
-               style="flex:1;padding:12px;background:#111;border:1px solid #333;color:#fff;border-radius:6px;font-size:1.1rem;"
+               style="flex:1;padding:12px;background:#fff;border:1px solid #e0e0e0;color:#1a1a1a;border-radius:6px;font-size:1.1rem;"
                autofocus>
-        <button type="submit" style="padding:12px 30px;background:#d4a853;color:#000;border:none;border-radius:6px;font-weight:700;font-size:1rem;cursor:pointer;">搜索</button>
+        <button type="submit" style="padding:12px 30px;background:#b8973e;color:#fff;border:none;border-radius:6px;font-weight:700;font-size:1rem;cursor:pointer;">搜索</button>
     </form>
     {% if q %}
-    <p style="color:#666;margin-top:10px;">
-        搜索 "<strong style="color:#d4a853;">{{ q }}</strong>" —
+    <p style="color:#888;margin-top:10px;">
+        搜索 "<strong style="color:#b8973e;">{{ q }}</strong>" —
         找到 <strong>{{ total }}</strong> 条结果
     </p>
     {% endif %}
@@ -20,7 +20,7 @@
 {% if q and results %}
 <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:20px;">
     {% for r in results %}
-    <div style="flex:1;min-width:280px;max-width:420px;background:#1a1a1a;border:1px solid #333;border-radius:8px;padding:16px;">
+    <div style="flex:1;min-width:280px;max-width:420px;background:#fff;border:1px solid #e0e0e0;border-radius:8px;padding:16px;">
         <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:8px;">
             <span style="font-size:0.7rem;background:{% if r.type == 'raw' %}#d4a85333{% elif r.type == 'semi' %}#5b9bd533{% else %}#6bc26b33{% endif %};color:{% if r.type == 'raw' %}#d4a853{% elif r.type == 'semi' %}#5b9bd5{% else %}#6bc26b{% endif %};padding:3px 8px;border-radius:4px;">
                 {{ {'raw': '🪨', 'semi': '🔧', 'finished': '💍'}.get(r.type, '') }} {{ r.type_label }}
@@ -28,13 +28,13 @@
             <span class="{{ status_badge(r.status_class) }}" style="font-size:0.65rem;padding:2px 8px;border-radius:3px;">{{ r.status }}</span>
         </div>
         <a href="{% if r.type == 'raw' %}{{ url_for('main.raw_detail', id=r.id) }}{% elif r.type == 'semi' %}{{ url_for('main.semi_detail', id=r.id) }}{% else %}{{ url_for('main.finished_detail', id=r.id) }}{% endif %}"
-           style="color:#d4a853;text-decoration:none;font-size:1.05rem;font-weight:600;">{{ r.name }}</a>
+           style="color:#b8973e;text-decoration:none;font-size:1.05rem;font-weight:600;">{{ r.name }}</a>
         {% if r.code %}<span style="color:#888;font-family:monospace;font-size:0.8rem;"> {{ r.code }}</span>{% endif %}
         <p style="color:#999;font-size:0.85rem;margin:4px 0;">{{ r.desc }}</p>
         {% if r.cert %}<p style="color:#888;font-size:0.8rem;">证书: {{ r.cert }}</p>{% endif %}
         {% if r.weight %}<p style="color:#888;font-size:0.8rem;">{{ r.weight }}</p>{% endif %}
         <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;">
-            <span style="color:#666;font-size:0.75rem;">📍 {{ r.location or '未标注位置' }}</span>
+            <span style="color:#888;font-size:0.75rem;">📍 {{ r.location or '未标注位置' }}</span>
             <a href="{% if r.type == 'raw' %}{{ url_for('main.raw_detail', id=r.id) }}{% elif r.type == 'semi' %}{{ url_for('main.semi_detail', id=r.id) }}{% else %}{{ url_for('main.finished_detail', id=r.id) }}{% endif %}"
                style="color:#5b9bd5;text-decoration:none;font-size:0.8rem;">查看 →</a>
         </div>
@@ -45,22 +45,22 @@
 {% if pagination and pagination.pages > 1 %}
 <div style="text-align:center;margin-top:20px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">
     {% if pagination.has_prev %}
-    <a href="?q={{ q }}&page={{ pagination.prev_num }}" style="padding:6px 14px;background:#333;color:#ccc;border-radius:4px;text-decoration:none;">上一页</a>
+    <a href="?q={{ q }}&page={{ pagination.prev_num }}" style="padding:6px 14px;background:#fff;color:#555;border:1px solid #e0e0e0;border-radius:4px;text-decoration:none;">上一页</a>
     {% endif %}
     <span style="padding:6px 14px;color:#888;">第 {{ pagination.page }} / {{ pagination.pages }} 页</span>
     {% if pagination.has_next %}
-    <a href="?q={{ q }}&page={{ pagination.next_num }}" style="padding:6px 14px;background:#333;color:#ccc;border-radius:4px;text-decoration:none;">下一页</a>
+    <a href="?q={{ q }}&page={{ pagination.next_num }}" style="padding:6px 14px;background:#fff;color:#555;border:1px solid #e0e0e0;border-radius:4px;text-decoration:none;">下一页</a>
     {% endif %}
 </div>
 {% endif %}
 
 {% elif q %}
-<p style="color:#666;text-align:center;padding:60px;">
+<p style="color:#888;text-align:center;padding:60px;">
     没有找到匹配 "{{ q }}" 的结果<br>
     试试不同的关键词，或检查拼写
 </p>
 {% else %}
-<p style="color:#666;text-align:center;padding:60px;">
+<p style="color:#888;text-align:center;padding:60px;">
     输入关键词搜索全部库存：编号、名称、证书号、位置、工匠、主石...
 </p>
 {% endif %}

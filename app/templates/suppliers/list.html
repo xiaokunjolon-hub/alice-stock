@@ -3,15 +3,15 @@
 {% block content %}
 
 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
-    <h2 style="color:#d4a853;margin:0;">🏢 供应商管理</h2>
-    <a href="{{ url_for('main.supplier_create') }}" style="padding:10px 20px;background:#d4a853;color:#000;border-radius:6px;text-decoration:none;font-weight:600;">+ 添加供应商</a>
+    <h2 style="color:#b8973e;margin:0;">🏢 供应商管理</h2>
+    <a href="{{ url_for('main.supplier_create') }}" style="padding:10px 20px;background:#b8973e;color:#fff;border-radius:6px;text-decoration:none;font-weight:600;">+ 添加供应商</a>
 </div>
 
 <!-- 搜索与筛选 -->
 <form method="GET" style="display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;">
     <input type="text" name="q" value="{{ search }}" placeholder="搜索名称/联系人/电话..."
-           style="flex:1;min-width:200px;padding:10px;background:#111;border:1px solid #333;color:#fff;border-radius:6px;">
-    <select name="type" style="padding:10px;background:#111;border:1px solid #333;color:#fff;border-radius:6px;">
+           style="flex:1;min-width:200px;padding:10px;background:#fff;border:1px solid #e0e0e0;color:#1a1a1a;border-radius:6px;">
+    <select name="type" style="padding:10px;background:#fff;border:1px solid #e0e0e0;color:#1a1a1a;border-radius:6px;">
         <option value="">全部类型</option>
         <option value="gold" {% if type_filter == 'gold' %}selected{% endif %}>金料供应商</option>
         <option value="stone" {% if type_filter == 'stone' %}selected{% endif %}>石料供应商</option>
@@ -19,16 +19,16 @@
         <option value="outsource" {% if type_filter == 'outsource' %}selected{% endif %}>外包合作</option>
         <option value="other" {% if type_filter == 'other' %}selected{% endif %}>其他</option>
     </select>
-    <button type="submit" style="padding:10px 20px;background:#333;color:#ccc;border:none;border-radius:6px;cursor:pointer;">筛选</button>
+    <button type="submit" style="padding:10px 20px;background:#b8973e;color:#fff;border:none;border-radius:6px;cursor:pointer;font-weight:600;">筛选</button>
     {% if search or type_filter %}
-    <a href="{{ url_for('main.supplier_list') }}" style="padding:10px 15px;color:#d4a853;text-decoration:none;line-height:2.5;">清除</a>
+    <a href="{{ url_for('main.supplier_list') }}" style="padding:10px 15px;color:#b8973e;text-decoration:none;line-height:2.5;">清除</a>
     {% endif %}
 </form>
 
 {% if suppliers %}
 <table style="width:100%;border-collapse:collapse;">
     <thead>
-        <tr style="border-bottom:1px solid #333;color:#999;text-align:left;">
+        <tr style="border-bottom:2px solid #e0e0e0;color:#888;text-align:left;">
             <th style="padding:10px;">名称</th>
             <th>类型</th>
             <th>联系人</th>
@@ -39,17 +39,17 @@
     </thead>
     <tbody>
     {% for s in suppliers %}
-        <tr style="border-bottom:1px solid #222;{% if not s.is_active %}opacity:0.5;{% endif %}">
+        <tr style="border-bottom:1px solid #f0f0f0;{% if not s.is_active %}opacity:0.5;{% endif %}">
             <td style="padding:10px;">
-                <strong style="color:#d4a853;">{{ s.name }}</strong>
-                {% if s.address %}<br><small style="color:#666;">{{ s.address }}</small>{% endif %}
+                <strong style="color:#b8973e;">{{ s.name }}</strong>
+                {% if s.address %}<br><small style="color:#888;">{{ s.address }}</small>{% endif %}
             </td>
-            <td><span style="font-size:0.8rem;background:#222;padding:3px 8px;border-radius:4px;">{{ s.type_display }}</span></td>
+            <td><span style="font-size:0.8rem;background:#f5f0e8;color:#555;padding:3px 8px;border-radius:4px;">{{ s.type_display }}</span></td>
             <td>{{ s.contact_name or '—' }}</td>
             <td>{{ s.phone or '—' }}</td>
             <td>{{ '启用' if s.is_active else '停用' }}</td>
             <td>
-                <a href="{{ url_for('main.supplier_edit', id=s.id) }}" style="color:#d4a853;text-decoration:none;margin-right:8px;">编辑</a>
+                <a href="{{ url_for('main.supplier_edit', id=s.id) }}" style="color:#b8973e;text-decoration:none;margin-right:8px;">编辑</a>
                 <form method="POST" action="{{ url_for('main.supplier_toggle', id=s.id) }}" style="display:inline;" onsubmit="return confirm('确认{{ '停用' if s.is_active else '启用' }}「{{ s.name }}」？')">
                     <button type="submit" style="background:none;border:none;color:{{ '#c44' if s.is_active else '#6c6' }};cursor:pointer;font-size:0.85rem;">{{ '停用' if s.is_active else '启用' }}</button>
                 </form>
@@ -59,7 +59,7 @@
     </tbody>
 </table>
 {% else %}
-<p style="color:#666;text-align:center;padding:40px;">暂无供应商，点击右上角添加</p>
+<p style="color:#888;text-align:center;padding:40px;">暂无供应商，点击右上角添加</p>
 {% endif %}
 
 {% endblock %}
