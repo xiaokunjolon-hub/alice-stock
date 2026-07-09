@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+{% block title %}成品库存{% endblock %}
+{% block content %}
+
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:10px;">
+    <h2 style="color:#b8973e;margin:0;">💍 成品库存</h2>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <a href="{{ url_for('main.finished_create') }}" style="padding:10px 16px;background:#b8973e;color:#fff;border-radius:6px;text-decoration:none;font-weight:600;">+ 录入</a>
+        <a href="{{ url_for('main.finished_import') }}" style="padding:10px 16px;background:#fff;color:#555;border:1px solid #e0e0e0;border-radius:6px;text-decoration:none;font-size:0.9rem;">📥 批量导入</a>
+        <a href="{{ url_for('main.finished_export', q=search, type=type_filter, status=status) }}" style="padding:10px 16px;background:#fff;color:#555;border:1px solid #e0e0e0;border-radius:6px;text-decoration:none;font-size:0.9rem;">📤 导出</a>
+    </div>
+</div>
+
+<form method="GET" style="display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;">
+    <input type="text" name="q" value="{{ search }}" placeholder="搜编号/名称/主石/位置/材质..."
+           style="flex:2;min-width:200px;padding:10px;background:#fff;border:1px solid #e0e0e0;color:#1a1a1a;border-radius:6px;">
+    <select name="type" style="padding:10px;background:#fff;border:1px solid #e0e0e0;color:#1a1a1a;border-radius:6px;">
+        <option value="">全部类型</option>
+        <option value="ring" {% if type_filter == 'ring' %}selected{% endif %}>戒指</option>
+        <option value="necklace" {% if type_filter == 'necklace' %}selected{% endif %}>项链</option>
+        <option value="bracelet" {% if type_filter == 'bracelet' %}selected{% endif %}>手链</option>
+        <option value="earrings" {% if type_filter == 'earrings' %}selected{% endif %}>耳饰</option>
+        <option value="bangle" {% if type_filter == 'bangle' %}selected{% endif %}>手镯</option>
+        <option value="pendant" {% if type_filter == 'pendant' %}selected{% endif %}>吊坠</option>
+        <option value="brooch" {% if type_filter == 'brooch' %}selected{% endif %}>胸针</option>
+        <option value="set" {% if type_filter == 'set' %}selected{% endif %}>套装</option>
+        <option value="other" {% if type_filter == 'other' %}selected{% endif %}>其他</option>
+    </select>
+    <select name="status" style="padding:10px;background:#fff;border:1px solid #e0e0e0;color:#1a1a1a;border-radius:6px;">
+        <option value="">全部状态</option>
+        <option value="in_stock" {% if status == 'in_stock' %}selected{% endif %}>在库</option>
+        <option value="display" {% if status == 'display' %}selected{% endif %}>展示中</option>
+        <option value="locked" {% if status == 'locked' %}selected{% endif %}>已锁定</option>
+        <option value="out" {% if status == 'out' %}selected{% endif %}>已出库</option>
+    </select>
+    <button type="submit" style="padding:10px 20px;background:#b8973e;color:#fff;border:none;border-radius:6px;cursor:pointer;font-weight:600;">搜索</button>
+    {% if search or type_filter or status %}
+    <a href="{{ url_for('main.finished_list') }}" style="padding:10px 15px;color:#b8973e;text-decoration:none;line-height:2.5;">清除</a>
+    {% endif %}
+</form>
+
+{% if items %}
+<p style="color:#888;margin-bottom:15px;">共 {{ pagination.total }} 条记录</p>
+
+<table style="width:100%;border-collapse:collapse;">
+    <thead>
+        <tr style="border-bottom:2px solid #e0e0e0;color:#888;text-align:left;">
+            <th style="padding:10px;">编号</th>
+            <th>名称</th>
+            <th>类型</th>
+            <th>材质</th>
+            <th>主石</th>
+            <th>金重/石重</th>
+            <th>位置</th>
+            <th>状态</th>
+            <th>操作</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for p in items %}
+        <tr style="border-bottom:1px solid #f0f0f0;">
+            <td style="padding:10px;font-family:monospace;color:#b8973e;">{{ p.product_code or '—' }}</td>
+            <td><strong>{{ p.name }}</strong></td>
+            <td>{{ p.type_display }}</td>
+            <td>{{ p.material_desc or '—' }}</td>
+            <td>{{ p.main_stone or '—' }}</td>
+            <td style="font-size:0.85rem;">
+                {% if p.gold_weight %}{{ p.gold_weight }}g{% endif %}
+                {% if p.gold_weight and p.stone_weight %} / {% endif %}
+                {% if p.stone_weight %}{{ p.stone_weight }}ct{% endif %}
+                {% if not p.gold_weight and not p.stone_weight %}—{% endif %}
+            </td>
+            <td>{{ p.location or '—' }}</td>
+            <td><span class="{{ status_badge(p.status) }}">{{ p.status_display }}</span></td>
+            <td>
+                <a href="{{ url_for('main.finished_detail', id=p.id) }}" style="color:#b8973e;text-decoration:none;margin-right:6px;">详情</a>
+                <a href="{{ url_for('main.finished_edit', id=p.id) }}" style="color:#555;text-decoration:none;margin-right:6px;">编辑</a>
+                <a href="{{ url_for('main.finished_copy', id=p.id) }}" style="color:#5b9bd5;text-decoration:none;font-size:0.85rem;">复制</a>
+            </td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+
+{% if pagination.pages > 1 %}
+<div style="text-align:center;margin-top:20px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">
+    {% if pagination.has_prev %}
+    <a href="?page={{ pagination.prev_num }}&q={{ search }}&type={{ type_filter }}&status={{ status }}" style="padding:6px 14px;background:#fff;color:#555;border:1px solid #e0e0e0;border-radius:4px;text-decoration:none;">上一页</a>
+    {% endif %}
+    {% for p in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+        {% if p %}
+            <a href="?page={{ p }}&q={{ search }}&type={{ type_filter }}&status={{ status }}"
+               style="padding:6px 14px;border-radius:4px;text-decoration:none;{% if p == pagination.page %}background:#b8973e;color:#fff;{% else %}background:#fff;color:#555;border:1px solid #e0e0e0;{% endif %}">{{ p }}</a>
+        {% else %}
+            <span style="padding:6px 8px;color:#555;">…</span>
+        {% endif %}
+    {% endfor %}
+    {% if pagination.has_next %}
+    <a href="?page={{ pagination.next_num }}&q={{ search }}&type={{ type_filter }}&status={{ status }}" style="padding:6px 14px;background:#fff;color:#555;border:1px solid #e0e0e0;border-radius:4px;text-decoration:none;">下一页</a>
+    {% endif %}
+</div>
+{% endif %}
+
+{% else %}
+<p style="color:#888;text-align:center;padding:60px;">
+    {% if search or type_filter or status %}
+    没有找到匹配的成品<br><a href="{{ url_for('main.finished_list') }}" style="color:#b8973e;">清除筛选</a>
+    {% else %}
+    暂无成品库存，点击右上角录入
+    {% endif %}
+</p>
+{% endif %}
+
+{% endblock %}

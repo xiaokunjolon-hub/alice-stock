@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+{% block title %}{{ item.name }} - 半成品详情{% endblock %}
+{% block content %}
+
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+    <h2 style="color:#b8973e;margin:0;">
+        🔧 {{ item.name }}
+        <span class="{{ status_badge(item.status) }}" style="font-size:0.7rem;margin-left:10px;padding:4px 10px;border-radius:4px;">{{ item.status_display }}</span>
+    </h2>
+    <div style="display:flex;gap:8px;">
+        <a href="{{ url_for('main.semi_copy', id=item.id) }}" style="padding:8px 16px;background:#5b9bd5;color:#fff;border-radius:6px;text-decoration:none;font-size:0.85rem;">复制新建</a>
+        <a href="{{ url_for('main.semi_edit', id=item.id) }}" style="padding:8px 16px;background:#333;color:#555;border-radius:6px;text-decoration:none;font-size:0.85rem;">编辑</a>
+        {% if current_user.is_admin %}
+        <form method="POST" action="{{ url_for('main.semi_delete', id=item.id) }}" style="display:inline;" onsubmit="return confirm('确认删除「{{ item.name }}」？')">
+            <button type="submit" style="padding:8px 16px;background:#c44;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:0.85rem;">删除</button>
+        </form>
+        {% endif %}
+    </div>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+    <div>
+        <div style="background:#fff;border:1px solid #e0e0e0;border-radius:8px;padding:20px;margin-bottom:20px;">
+            <h3 style="color:#b8973e;margin-bottom:15px;">基本信息</h3>
+            <table style="width:100%;color:#555;">
+                <tr><td style="color:#888;padding:4px 0;width:90px;">编号</td><td style="font-family:monospace;">{{ item.code or '—' }}</td></tr>
+                <tr><td style="color:#888;padding:4px 0;">名称</td><td><strong>{{ item.name }}</strong></td></tr>
+                <tr><td style="color:#888;padding:4px 0;">类型</td><td>{{ item.type_display }}</td></tr>
+                <tr><td style="color:#888;padding:4px 0;">状态</td><td><span class="{{ status_badge(item.status) }}">{{ item.status_display }}</span></td></tr>
+            </table>
+        </div>
+
+        <div style="background:#fff;border:1px solid #e0e0e0;border-radius:8px;padding:20px;margin-bottom:20px;">
+            <h3 style="color:#b8973e;margin-bottom:15px;">关联信息</h3>
+            <table style="width:100%;color:#555;">
+                <tr><td style="color:#888;padding:4px 0;width:90px;">关联订单</td><td>{{ item.workflow_order_id or '—' }}</td></tr>
+                <tr><td style="color:#888;padding:4px 0;">当前工匠</td><td>{{ item.craftsman or '—' }}</td></tr>
+                <tr><td style="color:#888;padding:4px 0;">当前所在</td><td>{{ item.current_location or '—' }}</td></tr>
+                <tr><td style="color:#888;padding:4px 0;">预计完成</td><td>{{ item.estimated_complete_date or '—' }}</td></tr>
+            </table>
+        </div>
+    </div>
+
+    <div>
+        {% if item.materials_snapshot %}
+        <div style="background:#fff;border:1px solid #e0e0e0;border-radius:8px;padding:20px;margin-bottom:20px;">
+            <h3 style="color:#b8973e;margin-bottom:15px;">用料说明</h3>
+            <p style="color:#555;white-space:pre-wrap;">{{ item.materials_snapshot }}</p>
+        </div>
+        {% endif %}
+
+        <div style="background:#fff;border:1px solid #e0e0e0;border-radius:8px;padding:20px;margin-bottom:20px;">
+            <h3 style="color:#b8973e;margin-bottom:15px;">成本与记录</h3>
+            <table style="width:100%;color:#555;">
+                {% if current_user.is_admin and item.cost_summary %}
+                <tr><td style="color:#888;padding:4px 0;width:90px;">成本汇总</td><td style="color:#b8973e;">¥{{ "%.2f"|format(item.cost_summary) }}</td></tr>
+                {% endif %}
+                <tr><td style="color:#888;padding:4px 0;">录入人</td><td>{{ item.created_by or '—' }}</td></tr>
+                <tr><td style="color:#888;padding:4px 0;">录入时间</td><td>{{ item.created_at.strftime('%Y-%m-%d %H:%M') if item.created_at else '—' }}</td></tr>
+                <tr><td style="color:#888;padding:4px 0;">最后更新</td><td>{{ item.updated_at.strftime('%Y-%m-%d %H:%M') if item.updated_at else '—' }}</td></tr>
+            </table>
+        </div>
+
+        {% if item.notes %}
+        <div style="background:#fff;border:1px solid #e0e0e0;border-radius:8px;padding:20px;margin-bottom:20px;">
+            <h3 style="color:#b8973e;margin-bottom:15px;">备注</h3>
+            <p style="color:#555;white-space:pre-wrap;">{{ item.notes }}</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+{% if photos %}
+<div style="background:#fff;border:1px solid #e0e0e0;border-radius:8px;padding:20px;margin-top:20px;">
+    <h3 style="color:#b8973e;margin-bottom:15px;">📷 照片 ({{ photos|length }} 张)</h3>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        {% for photo in photos %}
+        <img src="{{ url_for('main.uploaded_file', filename=photo) }}" alt="照片"
+             style="max-width:200px;max-height:200px;border-radius:4px;object-fit:cover;border:1px solid #333;">
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<!-- 快捷操作 -->
+<div style="background:#fff;border:1px solid #e0e0e0;border-radius:8px;padding:20px;margin-top:20px;">
+    <h3 style="color:#b8973e;margin-bottom:15px;">⚡ 操作</h3>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        {% if item.status == 'in_progress' %}
+        <form method="POST" action="{{ url_for('main.semi_action', id=item.id, action='lock') }}" style="display:inline;">
+            <button type="submit" style="padding:8px 16px;background:#b8973e;color:#fff;border:none;border-radius:6px;cursor:pointer;">🔒 锁定</button>
+        </form>
+        {% elif item.status == 'pending_check' %}
+        <form method="POST" action="{{ url_for('main.semi_action', id=item.id, action='in') }}" style="display:inline;">
+            <button type="submit" style="padding:8px 16px;background:#6bc26b;color:#000;border:none;border-radius:6px;cursor:pointer;">✅ 验收入库</button>
+        </form>
+        {% endif %}
+        {% if item.status == 'in_progress' or item.status == 'pending_check' %}
+        <form method="POST" action="{{ url_for('main.semi_action', id=item.id, action='out') }}" style="display:inline;">
+            <button type="submit" style="padding:8px 16px;background:#c44;color:#fff;border:none;border-radius:6px;cursor:pointer;">📤 出库</button>
+        </form>
+        {% endif %}
+        <a href="{{ url_for('main.transaction_create', target_type='semi', target_id=item.id, action='transfer') }}"
+           style="padding:8px 16px;background:#5b9bd5;color:#fff;border-radius:6px;text-decoration:none;">🔄 调拨</a>
+        <a href="{{ url_for('main.transaction_create', target_type='semi', target_id=item.id) }}"
+           style="padding:8px 16px;background:#333;color:#555;border-radius:6px;text-decoration:none;">📋 详细记录</a>
+    </div>
+</div>
+
+<!-- 流水历史 -->
+<div style="background:#fff;border:1px solid #e0e0e0;border-radius:8px;padding:20px;margin-top:20px;">
+    <h3 style="color:#b8973e;margin-bottom:15px;">📜 操作历史</h3>
+    <p style="color:#888;font-size:0.85rem;">
+        流水记录请查看
+        <a href="{{ url_for('main.transaction_list') }}?target_type=semi" style="color:#b8973e;">出入库流水</a>
+    </p>
+</div>
+
+<div style="margin-top:20px;">
+    <a href="{{ url_for('main.semi_list') }}" style="color:#999;text-decoration:none;">← 返回列表</a>
+</div>
+
+{% endblock %}

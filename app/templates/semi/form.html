@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+{% block title %}{{ '编辑' if item and item.id else '录入' }}半成品{% endblock %}
+{% block content %}
+
+<h2 style="color:#b8973e;margin-bottom:20px;">{{ '编辑' if item and item.id else '录入' }}半成品</h2>
+
+<form method="POST" enctype="multipart/form-data" style="max-width:700px;background:#f5f0e8;border:1px solid #e0e0e0;border-radius:8px;padding:30px;">
+
+    <fieldset style="border:1px solid #333;border-radius:6px;padding:15px;margin-bottom:20px;">
+        <legend style="color:#b8973e;padding:0 8px;">基本信息</legend>
+        <div style="display:flex;gap:15px;margin-bottom:12px;">
+            <div style="flex:1;">
+                <label style="color:#555;">编号</label>
+                <input type="text" name="code" value="{{ item.code or '' if item else '' }}"
+                       style="width:100%;padding:10px;background:#fff;border:1px solid #e0e0e0;color:#1a1a1a;border-radius:4px;margin-top:4px;">
+            </div>
+            <div style="flex:1;">
+                <label style="color:#555;">名称 <span style="color:#c44;">*</span></label>
+                <input type="text" name="name" value="{{ item.name if item else '' }}" required
+                       style="width:100%;padding:10px;background:#fff;border:1px solid #e0e0e0;color:#1a1a1a;border-radius:4px;margin-top:4px;">
+            </div>
+        </div>
+        <div style="margin-bottom:12px;">
+            <label style="color:#555;">类型</label>
+            <select name="type" style="width:100%;padding:10px;background:#fff;border:1px solid #e0e0e0;color:#1a1a1a;border-radius:4px;margin-top:4px;">
+                {% set tp = item.type if item else 'wax_model' %}
+                <option value="wax_model" {% if tp == 'wax_model' %}selected{% endif %}>精膜</option>
+                <option value="casting" {% if tp == 'casting' %}selected{% endif %}>铸件</option>
+                <option value="setting" {% if tp == 'setting' %}selected{% endif %}>镶石中</option>
+                <option value="polishing" {% if tp == 'polishing' %}selected{% endif %}>抛光中</option>
+                <option value="outsource" {% if tp == 'outsource' %}selected{% endif %}>在外包</option>
+                <option value="craftsman" {% if tp == 'craftsman' %}selected{% endif %}>在工匠</option>
+                <option value="other" {% if tp == 'other' %}selected{% endif %}>其他</option>
+            </select>
+        </div>
+    </fieldset>
+
+    <fieldset style="border:1px solid #333;border-radius:6px;padding:15px;margin-bottom:20px;">
+        <legend style="color:#b8973e;padding:0 8px;">关联与位置</legend>
+        <div style="display:flex;gap:15px;margin-bottom:12px;">
+            <div style="flex:1;">
+                <label style="color:#555;">关联订单号</label>
+                <input type="text" name="workflow_order_id" value="{{ item.workflow_order_id or '' if item else '' }}"
+                       style="width:100%;padding:10px;background:#fff;border:1px solid #e0e0e0;color:#1a1a1a;border-radius:4px;margin-top:4px;"
+                       placeholder="大系统订单编号">
+            </div>
+            <div style="flex:1;">
+                <label style="color:#555;">当前工匠</label>
+                <input type="text" name="craftsman" value="{{ item.craftsman or '' if item else '' }}"
+                       style="width:100%;padding:10px;background:#fff;border:1px solid #e0e0e0;color:#1a1a1a;border-radius:4px;margin-top:4px;">
+            </div>
+        </div>
+        <div style="display:flex;gap:15px;margin-bottom:12px;">
+            <div style="flex:1;">
+                <label style="color:#555;">当前所在</label>
+                <input type="text" name="current_location" value="{{ item.current_location or '' if item else '' }}"
+                       style="width:100%;padding:10px;background:#fff;border:1px solid #e0e0e0;color:#1a1a1a;border-radius:4px;margin-top:4px;"
+                       placeholder="如 外包李师傅 / 库房验收台">
+            </div>
+            <div style="flex:1;">
+                <label style="color:#555;">预计完成</label>
+                <input type="date" name="estimated_complete_date" value="{{ item.estimated_complete_date if item and item.estimated_complete_date else '' }}"
+                       style="width:100%;padding:10px;background:#fff;border:1px solid #e0e0e0;color:#1a1a1a;border-radius:4px;margin-top:4px;">
+            </div>
+        </div>
+        <div style="margin-bottom:12px;">
+            <label style="color:#555;">用料说明</label>
+            <textarea name="materials_snapshot" rows="2"
+                      style="width:100%;padding:10px;background:#fff;border:1px solid #e0e0e0;color:#1a1a1a;border-radius:4px;margin-top:4px;"
+                      placeholder="如：18K金 5.2g + 1.02ct圆钻">{{ item.materials_snapshot or '' if item else '' }}</textarea>
+        </div>
+    </fieldset>
+
+    <fieldset style="border:1px solid #333;border-radius:6px;padding:15px;margin-bottom:20px;">
+        <legend style="color:#b8973e;padding:0 8px;">成本与状态 {% if not current_user.is_admin %}<small style="color:#888;">(管理员可见成本)</small>{% endif %}</legend>
+        <div style="display:flex;gap:15px;margin-bottom:12px;">
+            <div style="flex:1;">
+                <label style="color:#555;">成本汇总 (¥)</label>
+                {% if current_user.is_admin %}
+                <input type="number" name="cost_summary" step="0.01" value="{{ item.cost_summary if item and item.cost_summary else '' }}"
+                       style="width:100%;padding:10px;background:#fff;border:1px solid #e0e0e0;color:#1a1a1a;border-radius:4px;margin-top:4px;">
+                {% else %}
+                <input type="number" name="cost_summary" step="0.01" value="{{ item.cost_summary if item and item.cost_summary else '' }}" disabled
+                       style="width:100%;padding:10px;background:#fff;border:1px solid #e0e0e0;color:#888;border-radius:4px;margin-top:4px;">
+                {% endif %}
+            </div>
+            <div style="flex:1;">
+                <label style="color:#555;">状态</label>
+                <select name="status" style="width:100%;padding:10px;background:#fff;border:1px solid #e0e0e0;color:#1a1a1a;border-radius:4px;margin-top:4px;">
+                    {% set st = item.status if item else 'in_progress' %}
+                    <option value="in_progress" {% if st == 'in_progress' %}selected{% endif %}>制作中</option>
+                    <option value="pending_check" {% if st == 'pending_check' %}selected{% endif %}>待验收</option>
+                    <option value="completed" {% if st == 'completed' %}selected{% endif %}>已完成</option>
+                    <option value="returned" {% if st == 'returned' %}selected{% endif %}>已退回</option>
+                </select>
+            </div>
+        </div>
+    </fieldset>
+
+    <fieldset style="border:1px solid #333;border-radius:6px;padding:15px;margin-bottom:20px;">
+        <legend style="color:#b8973e;padding:0 8px;">照片</legend>
+        <input type="file" name="photos" multiple accept="image/*" style="color:#555;">
+        {% if item and item.photos %}<p style="color:#888;font-size:0.8rem;margin-top:8px;">已有照片将保留，新照片会追加</p>{% endif %}
+    </fieldset>
+
+    <div style="margin-bottom:20px;">
+        <label style="color:#555;">备注</label>
+        <textarea name="notes" rows="2"
+                  style="width:100%;padding:10px;background:#fff;border:1px solid #e0e0e0;color:#1a1a1a;border-radius:4px;margin-top:4px;">{{ item.notes or '' if item else '' }}</textarea>
+    </div>
+
+    <div style="display:flex;gap:10px;">
+        <button type="submit" style="padding:10px 30px;background:#b8973e;color:#fff;border:none;border-radius:6px;font-weight:700;cursor:pointer;">保存</button>
+        <a href="{{ url_for('main.semi_list') }}" style="padding:10px 20px;background:#333;color:#555;border-radius:6px;text-decoration:none;">取消</a>
+    </div>
+</form>
+
+{% endblock %}

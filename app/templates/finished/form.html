@@ -1,0 +1,155 @@
+{% extends "base.html" %}
+{% block title %}{{ '编辑' if product and product.id else '录入' }}成品{% endblock %}
+{% block content %}
+
+<h2 style="color:#b8973e;margin-bottom:20px;">{{ '编辑' if product and product.id else '录入' }}成品</h2>
+
+<form method="POST" enctype="multipart/form-data" style="max-width:700px;background:#f5f0e8;border:1px solid #e0e0e0;border-radius:8px;padding:30px;">
+
+    <fieldset style="border:1px solid #333;border-radius:6px;padding:15px;margin-bottom:20px;">
+        <legend style="color:#b8973e;padding:0 8px;">基本信息</legend>
+        <div style="display:flex;gap:15px;margin-bottom:12px;">
+            <div style="flex:1;">
+                <label style="color:#555;">成品编号</label>
+                <input type="text" name="product_code" value="{{ product.product_code or '' if product else '' }}"
+                       style="width:100%;padding:10px;background:#fff;border:1px solid #e0e0e0;color:#1a1a1a;border-radius:4px;margin-top:4px;">
+            </div>
+            <div style="flex:1;">
+                <label style="color:#555;">名称 <span style="color:#c44;">*</span></label>
+                <input type="text" name="name" value="{{ product.name if product else '' }}" required
+                       style="width:100%;padding:10px;background:#fff;border:1px solid #e0e0e0;color:#1a1a1a;border-radius:4px;margin-top:4px;">
+            </div>
+        </div>
+        <div style="display:flex;gap:15px;margin-bottom:12px;">
+            <div style="flex:1;">
+                <label style="color:#555;">类型</label>
+                <select name="type" style="width:100%;padding:10px;background:#fff;border:1px solid #e0e0e0;color:#1a1a1a;border-radius:4px;margin-top:4px;">
+                    {% set tp = product.type if product else '' %}
+                    <option value="">—</option>
+                    <option value="ring" {% if tp == 'ring' %}selected{% endif %}>戒指</option>
+                    <option value="necklace" {% if tp == 'necklace' %}selected{% endif %}>项链</option>
+                    <option value="bracelet" {% if tp == 'bracelet' %}selected{% endif %}>手链</option>
+                    <option value="earrings" {% if tp == 'earrings' %}selected{% endif %}>耳饰</option>
+                    <option value="bangle" {% if tp == 'bangle' %}selected{% endif %}>手镯</option>
+                    <option value="pendant" {% if tp == 'pendant' %}selected{% endif %}>吊坠</option>
+                    <option value="brooch" {% if tp == 'brooch' %}selected{% endif %}>胸针</option>
+                    <option value="set" {% if tp == 'set' %}selected{% endif %}>套装</option>
+                    <option value="other" {% if tp == 'other' %}selected{% endif %}>其他</option>
+                </select>
+            </div>
+            <div style="flex:1;">
+                <label style="color:#555;">材质描述</label>
+                <input type="text" name="material_desc" value="{{ product.material_desc or '' if product else '' }}"
+                       style="width:100%;padding:10px;background:#fff;border:1px solid #e0e0e0;color:#1a1a1a;border-radius:4px;margin-top:4px;"
+                       placeholder="如 18K白金 / PT950">
+            </div>
+        </div>
+    </fieldset>
+
+    <fieldset style="border:1px solid #333;border-radius:6px;padding:15px;margin-bottom:20px;">
+        <legend style="color:#b8973e;padding:0 8px;">重量信息</legend>
+        <div style="display:flex;gap:15px;">
+            <div style="flex:1;">
+                <label style="color:#555;">金重 (g)</label>
+                <input type="number" name="gold_weight" step="0.01" value="{{ product.gold_weight if product and product.gold_weight else '' }}"
+                       style="width:100%;padding:10px;background:#fff;border:1px solid #e0e0e0;color:#1a1a1a;border-radius:4px;margin-top:4px;">
+            </div>
+            <div style="flex:1;">
+                <label style="color:#555;">石重 (ct)</label>
+                <input type="number" name="stone_weight" step="0.01" value="{{ product.stone_weight if product and product.stone_weight else '' }}"
+                       style="width:100%;padding:10px;background:#fff;border:1px solid #e0e0e0;color:#1a1a1a;border-radius:4px;margin-top:4px;">
+            </div>
+        </div>
+    </fieldset>
+
+    <fieldset style="border:1px solid #333;border-radius:6px;padding:15px;margin-bottom:20px;">
+        <legend style="color:#b8973e;padding:0 8px;">宝石信息</legend>
+        <div style="display:flex;gap:15px;margin-bottom:12px;">
+            <div style="flex:1;">
+                <label style="color:#555;">主石</label>
+                <input type="text" name="main_stone" value="{{ product.main_stone or '' if product else '' }}"
+                       style="width:100%;padding:10px;background:#fff;border:1px solid #e0e0e0;color:#1a1a1a;border-radius:4px;margin-top:4px;"
+                       placeholder="如 1.02ct 圆钻 D VVS1">
+            </div>
+        </div>
+        <div>
+            <label style="color:#555;">配石</label>
+            <textarea name="side_stones" rows="2"
+                      style="width:100%;padding:10px;background:#fff;border:1px solid #e0e0e0;color:#1a1a1a;border-radius:4px;margin-top:4px;"
+                      placeholder="如 碎钻 0.30ct x 12颗">{{ product.side_stones or '' if product else '' }}</textarea>
+        </div>
+    </fieldset>
+
+    <fieldset style="border:1px solid #333;border-radius:6px;padding:15px;margin-bottom:20px;">
+        <legend style="color:#b8973e;padding:0 8px;">成本与售价 {% if not current_user.is_admin %}<small style="color:#888;">(管理员可见)</small>{% endif %}</legend>
+        <div style="display:flex;gap:15px;margin-bottom:12px;">
+            <div style="flex:1;">
+                <label style="color:#555;">总成本 (¥)</label>
+                {% if current_user.is_admin %}
+                <input type="number" name="total_cost" step="0.01" value="{{ product.total_cost if product and product.total_cost else '' }}"
+                       style="width:100%;padding:10px;background:#fff;border:1px solid #e0e0e0;color:#1a1a1a;border-radius:4px;margin-top:4px;">
+                {% else %}
+                <input type="number" name="total_cost" step="0.01" value="{{ product.total_cost if product and product.total_cost else '' }}" disabled
+                       style="width:100%;padding:10px;background:#fff;border:1px solid #e0e0e0;color:#888;border-radius:4px;margin-top:4px;">
+                {% endif %}
+            </div>
+            <div style="flex:1;">
+                <label style="color:#555;">售价 (¥)</label>
+                {% if current_user.is_admin %}
+                <input type="number" name="sale_price" step="0.01" value="{{ product.sale_price if product and product.sale_price else '' }}"
+                       style="width:100%;padding:10px;background:#fff;border:1px solid #e0e0e0;color:#1a1a1a;border-radius:4px;margin-top:4px;">
+                {% else %}
+                <input type="number" name="sale_price" step="0.01" value="{{ product.sale_price if product and product.sale_price else '' }}" disabled
+                       style="width:100%;padding:10px;background:#fff;border:1px solid #e0e0e0;color:#888;border-radius:4px;margin-top:4px;">
+                {% endif %}
+            </div>
+        </div>
+    </fieldset>
+
+    <fieldset style="border:1px solid #333;border-radius:6px;padding:15px;margin-bottom:20px;">
+        <legend style="color:#b8973e;padding:0 8px;">库存信息</legend>
+        <div style="display:flex;gap:15px;margin-bottom:12px;">
+            <div style="flex:1;">
+                <label style="color:#555;">存放位置</label>
+                <input type="text" name="location" value="{{ product.location or '' if product else '' }}"
+                       style="width:100%;padding:10px;background:#fff;border:1px solid #e0e0e0;color:#1a1a1a;border-radius:4px;margin-top:4px;"
+                       placeholder="如 展柜A / 保险柜2号">
+            </div>
+            <div style="flex:1;">
+                <label style="color:#555;">状态</label>
+                <select name="status" style="width:100%;padding:10px;background:#fff;border:1px solid #e0e0e0;color:#1a1a1a;border-radius:4px;margin-top:4px;">
+                    {% set st = product.status if product else 'in_stock' %}
+                    <option value="in_stock" {% if st == 'in_stock' %}selected{% endif %}>在库</option>
+                    <option value="display" {% if st == 'display' %}selected{% endif %}>展示中</option>
+                    <option value="locked" {% if st == 'locked' %}selected{% endif %}>已锁定</option>
+                    <option value="out" {% if st == 'out' %}selected{% endif %}>已出库</option>
+                </select>
+            </div>
+        </div>
+        <div>
+            <label style="color:#555;">关联订单号</label>
+            <input type="text" name="workflow_order_id" value="{{ product.workflow_order_id or '' if product else '' }}"
+                   style="width:100%;padding:10px;background:#fff;border:1px solid #e0e0e0;color:#1a1a1a;border-radius:4px;margin-top:4px;"
+                   placeholder="大系统订单编号">
+        </div>
+    </fieldset>
+
+    <fieldset style="border:1px solid #333;border-radius:6px;padding:15px;margin-bottom:20px;">
+        <legend style="color:#b8973e;padding:0 8px;">照片</legend>
+        <input type="file" name="photos" multiple accept="image/*" style="color:#555;">
+        {% if product and product.photos %}<p style="color:#888;font-size:0.8rem;margin-top:8px;">已有照片将保留，新照片会追加</p>{% endif %}
+    </fieldset>
+
+    <div style="margin-bottom:20px;">
+        <label style="color:#555;">备注</label>
+        <textarea name="notes" rows="2"
+                  style="width:100%;padding:10px;background:#fff;border:1px solid #e0e0e0;color:#1a1a1a;border-radius:4px;margin-top:4px;">{{ product.notes or '' if product else '' }}</textarea>
+    </div>
+
+    <div style="display:flex;gap:10px;">
+        <button type="submit" style="padding:10px 30px;background:#b8973e;color:#fff;border:none;border-radius:6px;font-weight:700;cursor:pointer;">保存</button>
+        <a href="{{ url_for('main.finished_list') }}" style="padding:10px 20px;background:#333;color:#555;border-radius:6px;text-decoration:none;">取消</a>
+    </div>
+</form>
+
+{% endblock %}

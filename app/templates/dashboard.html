@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}库存仪表盘{% endblock %}
+{% block content %}
+
+<h2 style="color:#b8973e;">📦 库存概览</h2>
+
+<!-- 全局搜索 -->
+<form method="GET" action="{{ url_for('main.global_search') }}" style="margin:20px 0;">
+    <div style="display:flex;gap:10px;">
+        <input type="text" name="q" placeholder="🔍 全局搜索：编号/名称/证书号/位置/工匠/主石..."
+               style="flex:1;padding:12px;background:#fff;border:1px solid #e0e0e0;color:#1a1a1a;border-radius:6px;font-size:1rem;">
+        <button type="submit" style="padding:12px 24px;background:#b8973e;color:#fff;border:none;border-radius:6px;font-weight:700;cursor:pointer;">搜索</button>
+    </div>
+</form>
+
+<div class="dashboard-stats">
+    <a href="{{ url_for('main.raw_list') }}" class="stat-card gold" style="text-decoration:none;">
+        <div class="stat-num">{{ stats.raw_count }}</div>
+        <div class="stat-label">🪨 原材料</div>
+    </a>
+    <a href="{{ url_for('main.semi_list') }}" class="stat-card" style="text-decoration:none;border-color:#5b9bd5;">
+        <div class="stat-num" style="color:#5b9bd5;">{{ stats.semi_count }}</div>
+        <div class="stat-label">🔧 半成品</div>
+    </a>
+    <a href="{{ url_for('main.finished_list') }}" class="stat-card" style="text-decoration:none;border-color:#6bc26b;">
+        <div class="stat-num" style="color:#6bc26b;">{{ stats.finished_count }}</div>
+        <div class="stat-label">💍 成品</div>
+    </a>
+</div>
+
+<div class="quick-actions">
+    <a href="{{ url_for('main.raw_create') }}">+ 录入原材料</a>
+    <a href="{{ url_for('main.semi_create') }}">+ 录入半成品</a>
+    <a href="{{ url_for('main.finished_create') }}">+ 录入成品</a>
+    <a href="{{ url_for('main.supplier_list') }}" class="secondary">供应商管理</a>
+    <a href="{{ url_for('main.transaction_list') }}" class="secondary">出入库流水</a>
+    <a href="{{ url_for('main.order_list') }}" class="secondary">大系统订单</a>
+</div>
+
+<div style="color:#888;font-size:0.85rem;margin-top:40px;">
+    <p>共计 <strong>{{ stats.total }}</strong> 条库存记录</p>
+</div>
+
+{% endblock %}

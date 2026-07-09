@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+{% block title %}订单详情{% endblock %}
+{% block content %}
+
+{% set s_map = {
+    'draft': '草稿', 'pending_design': '待接单', 'designing': '设计中',
+    'design_confirmed': '设计确认', 'pending_stone_measurement': '待丈量',
+    'stone_measured': '已丈量', 'in_production': '制作中',
+    'pending_sales_receipt': '待店员确认', 'sales_received': '店员已收到',
+    'delivered': '已交付', 'completed': '已完成', 'cancelled': '已取消'
+} %}
+{% set dt_map = {'ring':'戒指','necklace':'项链','bracelet':'手链','earrings':'耳饰','bangle':'手镯','pendant':'吊坠','brooch':'胸针','set':'套装','other':'其他'} %}
+
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+    <h2 style="color:#b8973e;margin:0;">
+        📋 {{ order.get('title', '未命名') or '未命名' }}
+    </h2>
+    <span style="color:#888;font-size:0.8rem;">订单号: {{ order.get('custom_order_no', '') or order.get('id', '') }}</span>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+    <!-- 订单信息 -->
+    <div>
+        <div style="background:#fff;border:1px solid #e0e0e0;border-radius:8px;padding:20px;margin-bottom:20px;">
+            <h3 style="color:#b8973e;margin-bottom:15px;">订单信息</h3>
+            <table style="width:100%;color:#555;">
+                <tr><td style="color:#888;padding:4px 0;width:80px;">订单ID</td><td style="font-family:monospace;">{{ order.get('id', '') }}</td></tr>
+                <tr><td style="color:#888;padding:4px 0;">订单号</td><td style="font-family:monospace;color:#b8973e;">{{ order.get('custom_order_no', '') or '—' }}</td></tr>
+                <tr><td style="color:#888;padding:4px 0;">标题</td><td><strong>{{ order.get('title', '') or '—' }}</strong></td></tr>
+                <tr><td style="color:#888;padding:4px 0;">状态</td><td>{{ s_map.get(order.get('status', ''), order.get('status', '—')) }}</td></tr>
+                <tr><td style="color:#888;padding:4px 0;">类型</td><td>{{ dt_map.get(order.get('design_type', ''), order.get('design_type', '—')) }}</td></tr>
+                <tr><td style="color:#888;padding:4px 0;">材质</td><td>{{ order.get('material', '') or '—' }}</td></tr>
+                <tr><td style="color:#888;padding:4px 0;">预算</td><td>{{ order.get('budget', '') or '—' }}</td></tr>
+                <tr><td style="color:#888;padding:4px 0;">最终价</td><td>{{ order.get('final_price', '') or '—' }}</td></tr>
+            </table>
+        </div>
+
+        <div style="background:#fff;border:1px solid #e0e0e0;border-radius:8px;padding:20px;margin-bottom:20px;">
+            <h3 style="color:#b8973e;margin-bottom:15px;">规格信息</h3>
+            <table style="width:100%;color:#555;">
+                <tr><td style="color:#888;padding:4px 0;width:80px;">戒圈</td><td>{{ order.get('ring_size', '') or '—' }}</td></tr>
+                <tr><td style="color:#888;padding:4px 0;">链长</td><td>{{ order.get('necklace_length', '') or '—' }}</td></tr>
+                <tr><td style="color:#888;padding:4px 0;">手围</td><td>{{ order.get('wrist_size', '') or '—' }}</td></tr>
+            </table>
+        </div>
+    </div>
+
+    <!-- 客户与时间 -->
+    <div>
+        <div style="background:#fff;border:1px solid #e0e0e0;border-radius:8px;padding:20px;margin-bottom:20px;">
+            <h3 style="color:#b8973e;margin-bottom:15px;">客户信息</h3>
+            <table style="width:100%;color:#555;">
+                <tr><td style="color:#888;padding:4px 0;width:80px;">客户</td><td><strong>{{ order.get('customer_name', '') or '—' }}</strong></td></tr>
+                <tr><td style="color:#888;padding:4px 0;">电话</td><td>{{ order.get('customer_phone', '') or '—' }}</td></tr>
+                <tr><td style="color:#888;padding:4px 0;">创建人</td><td>{{ order.get('creator_name', '') or order.get('creator_username', '') or '—' }}</td></tr>
+                <tr><td style="color:#888;padding:4px 0;">创建时间</td><td>{{ order.get('created_at', '') or '—' }}</td></tr>
+                <tr><td style="color:#888;padding:4px 0;">完成时间</td><td>{{ order.get('completed_at', '') or '—' }}</td></tr>
+            </table>
+        </div>
+
+        <!-- 订单石头 -->
+        {% if stones %}
+        <div style="background:#fff;border:1px solid #e0e0e0;border-radius:8px;padding:20px;margin-bottom:20px;">
+            <h3 style="color:#b8973e;margin-bottom:15px;">💎 订单石头 ({{ stones|length }})</h3>
+            {% for stone in stones %}
+            <div style="background:#222;border-radius:6px;padding:12px;margin-bottom:8px;">
+                <div style="display:flex;justify-content:space-between;align-items:center;">
+                    <span style="color:#b8973e;font-weight:600;">{{ stone.get('stone_name', '') or '未命名' }}</span>
+                    <span style="font-size:0.75rem;background:#333;padding:2px 8px;border-radius:4px;color:#999;">{{ stone.get('stone_role', '') == 'main' and '主石' or '配石' }}</span>
+                </div>
+                <div style="font-size:0.8rem;color:#888;margin-top:4px;">
+                    {{ stone.get('stone_type', '') or '' }}
+                    {% if stone.get('weight') %} · {{ stone.get('weight') }}{{ stone.get('weight_unit', 'ct') }}{% endif %}
+                    {% if stone.get('shape') %} · {{ stone.get('shape') }}{% endif %}
+                    {% if stone.get('color') %} · {{ stone.get('color') }}{% endif %}
+                    {% if stone.get('clarity') %} · {{ stone.get('clarity') }}{% endif %}
+                </div>
+                {% if stone.get('certificate_no') %}
+                <div style="font-size:0.75rem;color:#888;margin-top:2px;">证书: {{ stone.get('certificate_no') }}</div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- 关联的库存物料 -->
+<div style="background:#fff;border:1px solid #e0e0e0;border-radius:8px;padding:20px;margin-top:20px;">
+    <h3 style="color:#b8973e;margin-bottom:15px;">🔗 关联的库存流水 ({{ linked_transactions|length }})</h3>
+    {% if linked_transactions %}
+    <table style="width:100%;border-collapse:collapse;">
+        <thead>
+            <tr style="border-bottom:2px solid #e0e0e0;color:#888;text-align:left;">
+                <th style="padding:8px;">时间</th>
+                <th>操作</th>
+                <th>物料</th>
+                <th>类别</th>
+                <th>操作人</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for t in linked_transactions %}
+        <tr style="border-bottom:1px solid #f0f0f0;">
+            <td style="padding:8px;font-size:0.8rem;color:#888;">{{ t.created_at.strftime('%m-%d %H:%M') if t.created_at else '' }}</td>
+            <td><span style="font-size:0.8rem;color:#b8973e;">{{ t.type_display }}</span></td>
+            <td><a href="{{ url_for('main.transaction_detail', id=t.id) }}" style="color:#555;text-decoration:none;">{{ t.target_name or '—' }}</a></td>
+            <td style="font-size:0.8rem;color:#888;">{{ {'raw': '原材料', 'semi': '半成品', 'finished': '成品'}.get(t.target_type, '') }}</td>
+            <td>{{ t.operator or '—' }}</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p style="color:#888;font-size:0.85rem;">
+        暂无关联的库存记录。在
+        <a href="{{ url_for('main.transaction_create') }}" style="color:#b8973e;">出入库</a>
+        时填写订单号 "{{ order.get('custom_order_no', '') or order.get('id', '') }}" 即可关联。
+    </p>
+    {% endif %}
+</div>
+
+<div style="margin-top:20px;">
+    <a href="{{ url_for('main.order_list') }}" style="color:#999;text-decoration:none;">← 返回订单列表</a>
+</div>
+
+{% endblock %}
