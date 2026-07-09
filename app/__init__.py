@@ -1,5 +1,6 @@
 import os
-from flask import Flask
+from flask import Flask, request
+from flask_login import current_user, logout_user, login_user
 from config import Config
 from app.extensions import db, login_manager
 
@@ -45,6 +46,39 @@ def create_app(config_class=Config):
         if stock_user and not _check_workflow_user_active(stock_user.username):
             return None
         return stock_user
+
+    # ── SSO 自动登录 ──────────────────────────────
+    JWT_SECRET_KEY = os.environ.get('JWT_SECRET_KEY', 'alice-jwt-secret-change-in-production')
+    import jwt as _jwt
+
+    @app.before_request
+    def sso_auto_login():
+        if request.endpoint and (request.endpoint.startswith('auth.') or request.endpoint == 'static'):
+            return None
+        token = request.cookies.get('alice_token')
+        if not token:
+            if current_user.is_authenticated:
+                logout_user()
+            return None
+        try:
+            payload = _jwt.decode(token, JWT_SECRET_KEY, algorithms=['HS256'])
+            jwt_user_id = payload.get('user_id')
+        except Exception:
+            return None
+        if not jwt_user_id:
+            return None
+        if current_user.is_authenticated and current_user.username == payload.get('username'):
+            return None
+        from app.models import StockUser
+        if current_user.is_authenticated:
+            logout_user()
+        stock_user = StockUser.query.filter_by(username=payload.get('username'), is_active=True).first()
+        if not stock_user:
+            stock_user = StockUser(username=payload['username'], role=payload.get('role', 'staff'), is_active=True)
+            db.session.add(stock_user)
+            db.session.commit()
+        if stock_user:
+            login_user(stock_user)
 
     os.makedirs(app.instance_path, exist_ok=True)
     os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
