@@ -14,7 +14,7 @@ def create_app(config_class=Config):
 
     # 数据库表创建
     with app.app_context():
-        from app import models  # noqa: F401 — 确保所有模型注册到 SQLAlchemy
+        from app import models  # noqa: F401
         db.create_all()
 
     login_manager.login_view = 'auth.login'
@@ -47,7 +47,7 @@ def create_app(config_class=Config):
             return None
         return stock_user
 
-    # ── SSO 自动登录 ──────────────────────────────
+    # ── SSO 自动登录（custom 是唯一 JWT 签发者）──────
     JWT_SECRET_KEY = os.environ.get('JWT_SECRET_KEY', 'alice-jwt-secret-change-in-production')
     import jwt as _jwt
 
@@ -57,28 +57,32 @@ def create_app(config_class=Config):
             return None
         token = request.cookies.get('alice_token')
         if not token:
-            if current_user.is_authenticated:
-                logout_user()
             return None
         try:
             payload = _jwt.decode(token, JWT_SECRET_KEY, algorithms=['HS256'])
-            jwt_user_id = payload.get('user_id')
-        except Exception:
+            jwt_username = payload.get('username')
+        except Exception as e:
+            app.logger.error(f"SSO JWT 解码失败: {e}")
+            if current_user.is_authenticated:
+                app.logger.warning(f"SSO JWT 无效，强制登出 {current_user.username}")
+                logout_user()
             return None
-        if not jwt_user_id:
+        if not jwt_username:
             return None
-        if current_user.is_authenticated and current_user.username == payload.get('username'):
+        if current_user.is_authenticated and current_user.username == jwt_username:
             return None
         from app.models import StockUser
+        old_user = current_user.username if current_user.is_authenticated else '匿名'
         if current_user.is_authenticated:
             logout_user()
-        stock_user = StockUser.query.filter_by(username=payload.get('username'), is_active=True).first()
+        stock_user = StockUser.query.filter_by(username=jwt_username, is_active=True).first()
         if not stock_user:
-            stock_user = StockUser(username=payload['username'], role=payload.get('role', 'staff'), is_active=True)
+            stock_user = StockUser(username=jwt_username, role=payload.get('role', 'staff'), is_active=True)
             db.session.add(stock_user)
             db.session.commit()
         if stock_user:
             login_user(stock_user)
+            app.logger.info(f"SSO 切换: {old_user} → {jwt_username}")
 
     os.makedirs(app.instance_path, exist_ok=True)
     os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
