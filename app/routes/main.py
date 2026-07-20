@@ -5,7 +5,7 @@ import uuid
 from datetime import datetime
 from math import ceil
 
-from flask import Blueprint, render_template, redirect, url_for, request, flash, current_app, send_from_directory, send_file
+from flask import Blueprint, render_template, redirect, url_for, request, flash, current_app, send_from_directory, send_file, jsonify
 from flask_login import login_required, current_user
 from werkzeug.utils import secure_filename
 
@@ -676,13 +676,43 @@ def finished_edit(id):
 
         if not product.name:
             flash('成品名称不能为空', 'warning')
-            return render_template('finished/form.html', product=product)
+            photos = json.loads(product.photos) if product.photos else []
+            return render_template('finished/form.html', product=product, photos=photos)
 
         db.session.commit()
         flash(f'成品「{product.name}」已更新', 'success')
         return redirect(url_for('main.finished_detail', id=product.id))
 
-    return render_template('finished/form.html', product=product)
+    photos = json.loads(product.photos) if product.photos else []
+    return render_template('finished/form.html', product=product, photos=photos)
+
+
+@main_bp.route('/finished/<int:id>/photo/<filename>/delete', methods=['POST'])
+@login_required
+def finished_photo_delete(id, filename):
+    """删除成品的单张照片"""
+    product = FinishedProduct.query.get_or_404(id)
+    photos = json.loads(product.photos) if product.photos else []
+
+    if filename in photos:
+        photos.remove(filename)
+        # 删除磁盘文件
+        upload_dir = current_app.config['UPLOAD_FOLDER']
+        filepath = os.path.join(upload_dir, filename)
+        if os.path.exists(filepath):
+            os.remove(filepath)
+        # 删除缩略图
+        thumb_dir = current_app.config['THUMBNAIL_FOLDER']
+        thumb_path = os.path.join(thumb_dir, filename)
+        if os.path.exists(thumb_path):
+            os.remove(thumb_path)
+
+        product.photos = json.dumps(photos, ensure_ascii=False) if photos else None
+        product.updated_at = datetime.now()
+        db.session.commit()
+        flash('照片已删除', 'info')
+
+    return redirect(url_for('main.finished_edit', id=product.id))
 
 
 @main_bp.route('/finished/<int:id>/delete', methods=['POST'])
@@ -1366,8 +1396,82 @@ def finished_export():
 
 
 # ══════════════════════════════════════════════════════════
-# 出入库流水
+# 公开 API（给官网等外部使用，无需登录）
 # ══════════════════════════════════════════════════════════
+
+@main_bp.route('/api/public/products')
+def public_products():
+    """公开产品列表 — 只暴露在库/展示中的成品，不含成本和内部信息"""
+    type_filter = request.args.get('type', '').strip()
+    limit = request.args.get('limit', 50, type=int)
+
+    query = FinishedProduct.query.filter(
+        FinishedProduct.status.in_(['in_stock', 'display'])
+    )
+
+    if type_filter:
+        query = query.filter(FinishedProduct.type == type_filter)
+
+    products = query.order_by(FinishedProduct.created_at.desc()).limit(limit).all()
+
+    upload_base = request.host_url.rstrip('/') + '/uploads/'
+
+    result = []
+    for p in products:
+        photos = json.loads(p.photos) if p.photos else []
+        photo_urls = [upload_base + f for f in photos]
+
+        result.append({
+            'id': p.id,
+            'product_code': p.product_code,
+            'name': p.name,
+            'type': p.type,
+            'type_display': p.type_display,
+            'material_desc': p.material_desc,
+            'main_stone': p.main_stone,
+            'side_stones': p.side_stones,
+            'gold_weight': p.gold_weight,
+            'stone_weight': p.stone_weight,
+            'photos': photo_urls,
+            'created_at': p.created_at.isoformat() if p.created_at else None,
+        })
+
+    # CORS — 允许官网跨域请求
+    resp = jsonify({'products': result, 'total': len(result)})
+    resp.headers['Access-Control-Allow-Origin'] = '*'
+    resp.headers['Access-Control-Allow-Headers'] = 'Content-Type'
+    return resp
+
+
+@main_bp.route('/api/public/products/<int:product_id>')
+def public_product_detail(product_id):
+    """公开产品详情"""
+    p = FinishedProduct.query.get_or_404(product_id)
+    if p.status not in ('in_stock', 'display'):
+        return jsonify({'error': '产品不存在'}), 404
+
+    upload_base = request.host_url.rstrip('/') + '/uploads/'
+    photos = json.loads(p.photos) if p.photos else []
+    photo_urls = [upload_base + f for f in photos]
+
+    result = {
+        'id': p.id,
+        'product_code': p.product_code,
+        'name': p.name,
+        'type': p.type,
+        'type_display': p.type_display,
+        'material_desc': p.material_desc,
+        'main_stone': p.main_stone,
+        'side_stones': p.side_stones,
+        'gold_weight': p.gold_weight,
+        'stone_weight': p.stone_weight,
+        'photos': photo_urls,
+        'created_at': p.created_at.isoformat() if p.created_at else None,
+    }
+
+    resp = jsonify(result)
+    resp.headers['Access-Control-Allow-Origin'] = '*'
+    return resp
 
 def _get_item(target_type, target_id):
     """根据类型和ID获取物料对象"""

@@ -136,8 +136,23 @@
 
     <fieldset style="border:1px solid #333;border-radius:6px;padding:15px;margin-bottom:20px;">
         <legend style="color:#b8973e;padding:0 8px;">照片</legend>
+
+        {% if photos %}
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:15px;">
+            {% for photo in photos %}
+            <div style="position:relative;display:inline-block;border:1px solid #333;border-radius:4px;overflow:hidden;">
+                <img src="{{ url_for('main.uploaded_file', filename=photo) }}" alt="照片"
+                     style="width:120px;height:120px;object-fit:cover;display:block;">
+                <button type="button" title="删除此照片"
+                        onclick="if(confirm('确认删除这张照片？')){var f=document.createElement('form');f.method='POST';f.action='{{ url_for('main.finished_photo_delete', id=product.id, filename=photo) }}';document.body.appendChild(f);f.submit();document.body.removeChild(f)}"
+                        style="width:24px;height:24px;border-radius:50%;border:none;background:#c44;color:#fff;font-size:14px;line-height:24px;cursor:pointer;text-align:center;padding:0;">✕</button>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
         <input type="file" name="photos" multiple accept="image/*" style="color:#555;">
-        {% if product and product.photos %}<p style="color:#888;font-size:0.8rem;margin-top:8px;">已有照片将保留，新照片会追加</p>{% endif %}
+        {% if product and product.photos %}<p style="color:#888;font-size:0.8rem;margin-top:8px;">新照片会追加到已有照片</p>{% endif %}
     </fieldset>
 
     <div style="margin-bottom:20px;">

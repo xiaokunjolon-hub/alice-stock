@@ -45,6 +45,7 @@
 <table style="width:100%;border-collapse:collapse;">
     <thead>
         <tr style="border-bottom:2px solid #e0e0e0;color:#888;text-align:left;">
+            <th style="padding:10px;width:60px;">图片</th>
             <th style="padding:10px;">编号</th>
             <th>名称</th>
             <th>类型</th>
@@ -59,6 +60,14 @@
     <tbody>
     {% for p in items %}
         <tr style="border-bottom:1px solid #f0f0f0;">
+            <td style="padding:6px;text-align:center;">
+                {% if p.first_photo %}
+                <img src="{{ url_for('main.uploaded_file', filename='thumbnails/' + p.first_photo) }}"
+                     alt="{{ p.name }}" style="width:48px;height:48px;object-fit:cover;border-radius:4px;">
+                {% else %}
+                <div style="width:48px;height:48px;background:#f5f5f5;border-radius:4px;display:inline-block;line-height:48px;color:#ccc;font-size:10px;">无图</div>
+                {% endif %}
+            </td>
             <td style="padding:10px;font-family:monospace;color:#b8973e;">{{ p.product_code or '—' }}</td>
             <td><strong>{{ p.name }}</strong></td>
             <td>{{ p.type_display }}</td>

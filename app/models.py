@@ -145,6 +145,27 @@ class RawMaterial(db.Model):
         unit_label = self.unit or 'ct'
         return f'{self.weight} {unit_label}'
 
+    @property
+    def first_photo(self):
+        if self.photos:
+            import json
+            try:
+                arr = json.loads(self.photos)
+                return arr[0] if arr else None
+            except (json.JSONDecodeError, TypeError):
+                return None
+        return None
+
+    @property
+    def photo_count(self):
+        if self.photos:
+            import json
+            try:
+                return len(json.loads(self.photos))
+            except (json.JSONDecodeError, TypeError):
+                return 0
+        return 0
+
     def __repr__(self):
         return f'<RawMaterial {self.code or self.id} {self.name}>'
 
@@ -194,6 +215,27 @@ class SemiFinished(db.Model):
             'pending_check': '待验收', 'returned': '已退回',
         }
         return _map.get(self.status, self.status)
+
+    @property
+    def first_photo(self):
+        if self.photos:
+            import json
+            try:
+                arr = json.loads(self.photos)
+                return arr[0] if arr else None
+            except (json.JSONDecodeError, TypeError):
+                return None
+        return None
+
+    @property
+    def photo_count(self):
+        if self.photos:
+            import json
+            try:
+                return len(json.loads(self.photos))
+            except (json.JSONDecodeError, TypeError):
+                return 0
+        return 0
 
     def __repr__(self):
         return f'<SemiFinished {self.code or self.id} {self.name}>'
@@ -249,6 +291,28 @@ class FinishedProduct(db.Model):
             'locked': '已锁定', 'out': '已出库',
         }
         return _map.get(self.status, self.status)
+
+    @property
+    def first_photo(self):
+        """返回第一张照片的文件名，没有则返回 None"""
+        if self.photos:
+            import json
+            try:
+                arr = json.loads(self.photos)
+                return arr[0] if arr else None
+            except (json.JSONDecodeError, TypeError):
+                return None
+        return None
+
+    @property
+    def photo_count(self):
+        if self.photos:
+            import json
+            try:
+                return len(json.loads(self.photos))
+            except (json.JSONDecodeError, TypeError):
+                return 0
+        return 0
 
     def __repr__(self):
         return f'<FinishedProduct {self.product_code or self.id}>'
