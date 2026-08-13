@@ -14,8 +14,10 @@ from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill, Alignment
 from openpyxl.utils import get_column_letter
 
+import requests
+
 from app.extensions import db
-from app.models import Supplier, RawMaterial, SemiFinished, FinishedProduct, Transaction
+from app.models import Supplier, RawMaterial, SemiFinished, FinishedProduct, Transaction, CustomerOrder
 from app.decorators import admin_required
 from app.utils.workflow_db import search_orders as wf_search_orders, get_order as wf_get_order, \
     get_order_stones, status_display as wf_status_display, design_type_display, stone_type_display
@@ -245,6 +247,7 @@ def raw_create():
             code=request.form.get('code', '').strip() or None,
             category=request.form.get('category', 'stone'),
             name=request.form.get('name', '').strip(),
+            name_en=request.form.get('name_en', '').strip() or None,
             spec=request.form.get('spec', '').strip() or None,
 
             weight=float(request.form.get('weight')) if request.form.get('weight') else None,
@@ -301,6 +304,7 @@ def raw_edit(id):
         material.code = request.form.get('code', '').strip() or None
         material.category = request.form.get('category', 'stone')
         material.name = request.form.get('name', '').strip()
+        material.name_en = request.form.get('name_en', '').strip() or None
         material.spec = request.form.get('spec', '').strip() or None
 
         material.weight = float(request.form.get('weight')) if request.form.get('weight') else None
@@ -438,6 +442,7 @@ def semi_create():
         item = SemiFinished(
             code=request.form.get('code', '').strip() or None,
             name=request.form.get('name', '').strip(),
+            name_en=request.form.get('name_en', '').strip() or None,
             type=request.form.get('type', 'wax_model'),
             workflow_order_id=request.form.get('workflow_order_id', '').strip() or None,
             craftsman=request.form.get('craftsman', '').strip() or None,
@@ -483,6 +488,7 @@ def semi_edit(id):
     if request.method == 'POST':
         item.code = request.form.get('code', '').strip() or None
         item.name = request.form.get('name', '').strip()
+        item.name_en = request.form.get('name_en', '').strip() or None
         item.type = request.form.get('type', 'wax_model')
         item.workflow_order_id = request.form.get('workflow_order_id', '').strip() or None
         item.craftsman = request.form.get('craftsman', '').strip() or None
@@ -600,12 +606,18 @@ def finished_create():
             name=request.form.get('name', '').strip(),
             type=request.form.get('type', '').strip() or None,
             material_desc=request.form.get('material_desc', '').strip() or None,
+            material_desc_en=request.form.get('material_desc_en', '').strip() or None,
+            size_spec=request.form.get('size_spec', '').strip() or None,
+            name_en=request.form.get('name_en', '').strip() or None,
+            show_on_website=request.form.get('show_on_website') == 'on',
 
             gold_weight=float(request.form.get('gold_weight')) if request.form.get('gold_weight') else None,
             stone_weight=float(request.form.get('stone_weight')) if request.form.get('stone_weight') else None,
 
             main_stone=request.form.get('main_stone', '').strip() or None,
+            main_stone_en=request.form.get('main_stone_en', '').strip() or None,
             side_stones=request.form.get('side_stones', '').strip() or None,
+            side_stones_en=request.form.get('side_stones_en', '').strip() or None,
 
             total_cost=float(request.form.get('total_cost')) if request.form.get('total_cost') else None,
             sale_price=float(request.form.get('sale_price')) if request.form.get('sale_price') else None,
@@ -641,6 +653,19 @@ def finished_detail(id):
     return render_template('finished/detail.html', product=product, photos=photos)
 
 
+@main_bp.route('/finished/<int:id>/toggle-website', methods=['POST'])
+@login_required
+def finished_toggle_website(id):
+    """切换成品是否在官网展示"""
+    product = FinishedProduct.query.get_or_404(id)
+    product.show_on_website = not product.show_on_website
+    product.updated_at = datetime.now()
+    db.session.commit()
+    state = '已上架官网' if product.show_on_website else '已下架官网'
+    flash(f'成品「{product.name}」{state}', 'success')
+    return redirect(url_for('main.finished_detail', id=product.id))
+
+
 @main_bp.route('/finished/<int:id>/edit', methods=['GET', 'POST'])
 @login_required
 def finished_edit(id):
@@ -651,12 +676,18 @@ def finished_edit(id):
         product.name = request.form.get('name', '').strip()
         product.type = request.form.get('type', '').strip() or None
         product.material_desc = request.form.get('material_desc', '').strip() or None
+        product.material_desc_en = request.form.get('material_desc_en', '').strip() or None
+        product.size_spec = request.form.get('size_spec', '').strip() or None
+        product.name_en = request.form.get('name_en', '').strip() or None
+        product.show_on_website = request.form.get('show_on_website') == 'on'
 
         product.gold_weight = float(request.form.get('gold_weight')) if request.form.get('gold_weight') else None
         product.stone_weight = float(request.form.get('stone_weight')) if request.form.get('stone_weight') else None
 
         product.main_stone = request.form.get('main_stone', '').strip() or None
+        product.main_stone_en = request.form.get('main_stone_en', '').strip() or None
         product.side_stones = request.form.get('side_stones', '').strip() or None
+        product.side_stones_en = request.form.get('side_stones_en', '').strip() or None
 
         if request.form.get('total_cost'):
             product.total_cost = float(request.form.get('total_cost'))
@@ -736,6 +767,7 @@ def finished_copy(id):
         name=product.name,
         type=product.type,
         material_desc=product.material_desc,
+        size_spec=product.size_spec,
         gold_weight=product.gold_weight,
         stone_weight=product.stone_weight,
         main_stone=product.main_stone,
@@ -1396,6 +1428,204 @@ def finished_export():
 
 
 # ══════════════════════════════════════════════════════════
+# AI 智能识别接口（录入成品时自动解析商品描述）
+# ══════════════════════════════════════════════════════════
+
+AI_PARSE_SYSTEM_PROMPT = """你是一名珠宝行业的数据录入助手。用户会给你一段商品描述文字，你需要从中提取关键信息，整理成 JSON 输出。
+
+请严格按以下 JSON 结构返回（无法识别的字段填 null）：
+{
+  "name": "商品名称（去掉价格和多余营销词，保留核心品类词）",
+  "type": "类型，只能是以下之一：ring/necklace/bracelet/earrings/bangle/pendant/brooch/set/other，不确定填 null",
+  "material_desc": "材质描述，如 18K金/PT950/925银 等",
+  "main_stone": "主石描述，如 大溪地黑珍珠/1.02ct圆钻 等",
+  "side_stones": "配石/点缀描述，如 钻石点缀/碎钻0.30ct x 12颗 等",
+  "size_spec": "尺寸/规格，如 11mm/16寸/12号 等",
+  "gold_weight": 金重数值（单位克，仅数字，没有填 null）,
+  "stone_weight": 石重数值（单位克拉，仅数字，没有填 null）,
+  "sale_price": 售价数值（仅数字，没有填 null）,
+  "total_cost": 成本数值（仅数字，一般没有，填 null）,
+  "notes": "其他备注信息（没有填 null）"
+}
+
+规则：
+1. 只输出一个合法的 JSON 对象，不要输出任何解释文字、不要用 markdown 代码块。
+2. 数字字段必须是纯数字（int/float），不能带单位或货币符号。
+3. 名称要简洁规范，例如「大溪地黑珍珠钻石点缀吊坠」。
+4. 类型中文对应：戒指=ring 项链=necklace 手链=bracelet 耳饰/耳环=earrings 手镯=bangle 吊坠=pendant 胸针=brooch 套装=set。
+"""
+
+
+AI_PARSE_RAW_PROMPT = """你是一名珠宝原材料（物料）数据录入助手。用户会给你一段物料描述文字，你需要提取关键信息，整理成 JSON 输出。
+
+请严格按以下 JSON 结构返回（无法识别的字段填 null）：
+{
+  "name": "物料名称",
+  "category": "分类，只能是 gold/silver/platinum/diamond/gemstone/pearl/jade/accessory/other 之一，不确定填 null",
+  "spec": "规格描述，如 1.5mm圆珠 / 8x10mm蛋面 等",
+  "weight": 重量数值（仅数字，没有填 null）,
+  "unit": "单位，只能是 ct/g/颗 之一，不确定填 null",
+  "shape": "形状，只能是 round/oval/pear/cushion/emerald/princess/heart/marquise/other_shape 之一，不确定填 null",
+  "color": "颜色，如 D / 鸽血红 / 皇家蓝 等",
+  "clarity": "净度，如 VVS1 / IF / SI1 等",
+  "cert_number": "证书编号",
+  "cert_org": "证书机构，如 GIA / IGI / NGTC",
+  "purity": "成色，只能是 999/916/750/585/9999/990/925 之一，不确定填 null",
+  "cost_price": 采购价数值（仅数字，没有填 null）,
+  "lot_number": "批次号",
+  "notes": "其他备注（没有填 null）"
+}
+
+规则：
+1. 只输出一个合法的 JSON 对象，不要输出任何解释文字、不要用 markdown 代码块。
+2. 数字字段必须是纯数字（int/float），不能带单位或货币符号。
+3. 分类中文对应：金料=gold 银料=silver 铂金=platinum 钻石=diamond 彩色宝石=gemstone 珍珠=pearl 翡翠/玉石=jade 配件=accessory 其他=other。
+4. 形状中文对应：圆形=round 椭圆=oval 水滴/梨形=pear 垫形=cushion 祖母绿形=emerald 公主方=princess 心形=heart 马眼=marquise。
+5. 成色：999=足金 916=22K 750=18K 585=14K 9999=万足金 990=足银 925=银。
+"""
+
+
+AI_PARSE_SEMI_PROMPT = """你是一名珠宝半成品（生产工序中的工件）数据录入助手。用户会给你一段描述文字，你需要提取关键信息，整理成 JSON 输出。
+
+请严格按以下 JSON 结构返回（无法识别的字段填 null）：
+{
+  "name": "半成品名称",
+  "type": "类型，只能是 wax_model/casting/setting/polishing/outsource/craftsman/other 之一，不确定填 null",
+  "workflow_order_id": "关联订单号",
+  "craftsman": "当前工匠",
+  "current_location": "当前所在位置/环节",
+  "materials_snapshot": "用料说明，如 18K金 5.2g + 1.02ct圆钻",
+  "cost_summary": 成本汇总数值（仅数字，没有填 null）,
+  "notes": "其他备注（没有填 null）"
+}
+
+规则：
+1. 只输出一个合法的 JSON 对象，不要输出任何解释文字、不要用 markdown 代码块。
+2. 数字字段必须是纯数字（int/float），不能带单位或货币符号。
+3. 类型中文对应：精膜=wax_model 铸件=casting 镶石中=setting 抛光中=polishing 在外包=outsource 在工匠=craftsman 其他=other。
+"""
+
+
+AI_PARSE_PROMPTS = {
+    'finished': AI_PARSE_SYSTEM_PROMPT,
+    'raw': AI_PARSE_RAW_PROMPT,
+    'semi': AI_PARSE_SEMI_PROMPT,
+}
+
+
+@main_bp.route('/api/ai/parse', methods=['POST'])
+@login_required
+def ai_parse():
+    """AI 识别商品/物料描述，返回结构化字段（录入辅助，不落库）"""
+    payload = request.get_json(silent=True) or {}
+    text = payload.get('text', '').strip()
+    entity = payload.get('entity', 'finished')
+    if entity not in AI_PARSE_PROMPTS:
+        entity = 'finished'
+    if not text:
+        return jsonify({'error': '请输入要识别的文字'}), 400
+
+    api_key = current_app.config.get('DEEPSEEK_API_KEY')
+    if not api_key:
+        return jsonify({'error': '未配置 DeepSeek API Key'}), 500
+
+    base_url = current_app.config.get('DEEPSEEK_BASE_URL', 'https://api.deepseek.com').rstrip('/')
+    model = current_app.config.get('DEEPSEEK_MODEL', 'deepseek-chat')
+
+    try:
+        resp = requests.post(
+            base_url + '/chat/completions',
+            headers={
+                'Authorization': 'Bearer ' + api_key,
+                'Content-Type': 'application/json',
+            },
+            json={
+                'model': model,
+                'messages': [
+                    {'role': 'system', 'content': AI_PARSE_PROMPTS[entity]},
+                    {'role': 'user', 'content': text},
+                ],
+                'response_format': {'type': 'json_object'},
+                'temperature': 0.1,
+            },
+            timeout=60,
+        )
+        resp.raise_for_status()
+        data = resp.json()
+        content = data['choices'][0]['message']['content']
+        parsed = json.loads(content)
+        return jsonify({'ok': True, 'data': parsed})
+    except requests.exceptions.Timeout:
+        return jsonify({'error': '识别超时，请重试'}), 504
+    except requests.exceptions.RequestException as e:
+        current_app.logger.error(f'DeepSeek API 调用失败: {e}')
+        return jsonify({'error': f'AI 服务调用失败: {e}'}), 502
+    except (KeyError, IndexError, json.JSONDecodeError) as e:
+        current_app.logger.error(f'DeepSeek 返回解析失败: {e}')
+        return jsonify({'error': 'AI 返回格式异常，请重试'}), 502
+
+
+@main_bp.route('/api/ai/translate', methods=['POST'])
+@login_required
+def ai_translate():
+    """AI 把中文字段翻译成英文（珠宝专业翻译，录入辅助，不落库）"""
+    payload = request.get_json(silent=True) or {}
+    fields = payload.get('fields', {})
+    to_translate = {k: v.strip() for k, v in fields.items() if isinstance(v, str) and v.strip()}
+    if not to_translate:
+        return jsonify({'error': '没有要翻译的内容'}), 400
+
+    api_key = current_app.config.get('DEEPSEEK_API_KEY')
+    if not api_key:
+        return jsonify({'error': '未配置 DeepSeek API Key'}), 500
+
+    base_url = current_app.config.get('DEEPSEEK_BASE_URL', 'https://api.deepseek.com').rstrip('/')
+    model = current_app.config.get('DEEPSEEK_MODEL', 'deepseek-chat')
+
+    prompt = (
+        '你是资深珠宝行业翻译，把以下中文珠宝术语翻译成标准英文（珠宝专业用语）。\n'
+        '规则：\n'
+        '- 宝石/材质用标准英文：翡翠=jadeite，黑珍珠=black pearl，18K白金=18K white gold，碎钻=melee diamonds\n'
+        '- 尺寸/重量单位保持原样：11mm 不变、1.02ct 不变、0.30ct x 12颗 → 0.30ct x 12pcs\n'
+        '- 只输出一个 JSON 对象，key 与输入完全一致，value 为对应英文翻译\n'
+        '- 不要任何解释、不要 markdown 代码块\n'
+        '输入：' + json.dumps(to_translate, ensure_ascii=False)
+    )
+
+    try:
+        resp = requests.post(
+            base_url + '/chat/completions',
+            headers={
+                'Authorization': 'Bearer ' + api_key,
+                'Content-Type': 'application/json',
+            },
+            json={
+                'model': model,
+                'messages': [
+                    {'role': 'system', 'content': prompt},
+                    {'role': 'user', 'content': '请翻译'},
+                ],
+                'response_format': {'type': 'json_object'},
+                'temperature': 0.1,
+            },
+            timeout=60,
+        )
+        resp.raise_for_status()
+        data = resp.json()
+        content = data['choices'][0]['message']['content']
+        translated = json.loads(content)
+        return jsonify({'ok': True, 'data': translated})
+    except requests.exceptions.Timeout:
+        return jsonify({'error': '翻译超时，请重试'}), 504
+    except requests.exceptions.RequestException as e:
+        current_app.logger.error(f'DeepSeek 翻译调用失败: {e}')
+        return jsonify({'error': f'AI 服务调用失败: {e}'}), 502
+    except (KeyError, IndexError, json.JSONDecodeError) as e:
+        current_app.logger.error(f'DeepSeek 翻译返回解析失败: {e}')
+        return jsonify({'error': 'AI 返回格式异常，请重试'}), 502
+
+
+# ══════════════════════════════════════════════════════════
 # 公开 API（给官网等外部使用，无需登录）
 # ══════════════════════════════════════════════════════════
 
@@ -1406,7 +1636,8 @@ def public_products():
     limit = request.args.get('limit', 50, type=int)
 
     query = FinishedProduct.query.filter(
-        FinishedProduct.status.in_(['in_stock', 'display'])
+        FinishedProduct.status.in_(['in_stock', 'display']),
+        FinishedProduct.show_on_website == True,
     )
 
     if type_filter:
@@ -1425,13 +1656,18 @@ def public_products():
             'id': p.id,
             'product_code': p.product_code,
             'name': p.name,
+            'name_en': p.name_en,
             'type': p.type,
             'type_display': p.type_display,
             'material_desc': p.material_desc,
+            'material_desc_en': p.material_desc_en,
             'main_stone': p.main_stone,
+            'main_stone_en': p.main_stone_en,
             'side_stones': p.side_stones,
+            'side_stones_en': p.side_stones_en,
             'gold_weight': p.gold_weight,
             'stone_weight': p.stone_weight,
+            'sale_price': p.sale_price,
             'photos': photo_urls,
             'created_at': p.created_at.isoformat() if p.created_at else None,
         })
@@ -1447,7 +1683,7 @@ def public_products():
 def public_product_detail(product_id):
     """公开产品详情"""
     p = FinishedProduct.query.get_or_404(product_id)
-    if p.status not in ('in_stock', 'display'):
+    if p.status not in ('in_stock', 'display') or not p.show_on_website:
         return jsonify({'error': '产品不存在'}), 404
 
     upload_base = request.host_url.rstrip('/') + '/uploads/'
@@ -1458,13 +1694,18 @@ def public_product_detail(product_id):
         'id': p.id,
         'product_code': p.product_code,
         'name': p.name,
+        'name_en': p.name_en,
         'type': p.type,
         'type_display': p.type_display,
         'material_desc': p.material_desc,
+        'material_desc_en': p.material_desc_en,
         'main_stone': p.main_stone,
+        'main_stone_en': p.main_stone_en,
         'side_stones': p.side_stones,
+        'side_stones_en': p.side_stones_en,
         'gold_weight': p.gold_weight,
         'stone_weight': p.stone_weight,
+        'sale_price': p.sale_price,
         'photos': photo_urls,
         'created_at': p.created_at.isoformat() if p.created_at else None,
     }
@@ -1472,6 +1713,181 @@ def public_product_detail(product_id):
     resp = jsonify(result)
     resp.headers['Access-Control-Allow-Origin'] = '*'
     return resp
+
+
+@main_bp.after_request
+def _public_cors(resp):
+    """公开 API 统一 CORS（含 OPTIONS 预检）"""
+    if request.path.startswith('/api/public/'):
+        resp.headers['Access-Control-Allow-Origin'] = '*'
+        resp.headers['Access-Control-Allow-Methods'] = 'GET, POST, OPTIONS'
+        resp.headers['Access-Control-Allow-Headers'] = 'Content-Type'
+    return resp
+
+
+@main_bp.route('/api/public/orders', methods=['POST', 'OPTIONS'])
+def public_create_order():
+    """公开下单接口 — 官网顾客提交订单（无需登录，创建待付款订单）"""
+    if request.method == 'OPTIONS':
+        return ('', 204)
+
+    data = request.get_json(silent=True) or {}
+    items = data.get('items') or []
+    customer_name = (data.get('customer_name') or '').strip()
+    if not items:
+        return jsonify({'error': '订单没有商品'}), 400
+    if not customer_name:
+        return jsonify({'error': '请填写收货人姓名'}), 400
+
+    total = 0.0
+    cleaned = []
+    for it in items:
+        try:
+            pid = int(it.get('product_id'))
+            qty = int(it.get('qty', 1))
+        except (TypeError, ValueError):
+            continue
+        if qty <= 0:
+            continue
+        p = FinishedProduct.query.get(pid)
+        if not p or p.status not in ('in_stock', 'display'):
+            continue
+        price = p.sale_price or 0
+        cleaned.append({'product_id': pid, 'name': p.name, 'price': price, 'qty': qty})
+        total += price * qty
+
+    if not cleaned:
+        return jsonify({'error': '没有可下单的有效商品'}), 400
+
+    order_no = 'ORD' + datetime.now().strftime('%Y%m%d%H%M%S') + uuid.uuid4().hex[:4].upper()
+
+    order = CustomerOrder(
+        order_no=order_no,
+        customer_name=customer_name,
+        customer_phone=(data.get('customer_phone') or '').strip() or None,
+        customer_email=(data.get('customer_email') or '').strip() or None,
+        shipping_address=(data.get('shipping_address') or '').strip() or None,
+        items=json.dumps(cleaned, ensure_ascii=False),
+        total_amount=round(total, 2),
+        currency=(data.get('currency') or 'CNY').strip(),
+        status='pending_payment',
+        remark=(data.get('remark') or '').strip() or None,
+    )
+    db.session.add(order)
+    db.session.commit()
+
+    return jsonify({'order_no': order.order_no, 'total_amount': order.total_amount, 'status': order.status})
+
+
+# ══════════════════════════════════════════════════════════
+# PayPal 支付（海外收款）
+# ══════════════════════════════════════════════════════════
+
+def _paypal_api_base():
+    mode = current_app.config.get('PAYPAL_MODE', 'sandbox')
+    return 'https://api-m.sandbox.paypal.com' if mode == 'sandbox' else 'https://api-m.paypal.com'
+
+
+def _paypal_access_token():
+    import base64
+    client_id = current_app.config.get('PAYPAL_CLIENT_ID')
+    secret = current_app.config.get('PAYPAL_CLIENT_SECRET')
+    if not client_id or not secret:
+        return None
+    auth = base64.b64encode(f'{client_id}:{secret}'.encode()).decode()
+    resp = requests.post(
+        _paypal_api_base() + '/v1/oauth2/token',
+        data='grant_type=client_credentials',
+        headers={'Authorization': 'Basic ' + auth, 'Content-Type': 'application/x-www-form-urlencoded'},
+        timeout=30,
+    )
+    resp.raise_for_status()
+    return resp.json()['access_token']
+
+
+@main_bp.route('/api/public/paypal/create-order', methods=['POST', 'OPTIONS'])
+def paypal_create_order():
+    """创建 PayPal 订单，返回 approve 链接供买家批准"""
+    if request.method == 'OPTIONS':
+        return ('', 204)
+    data = request.get_json(silent=True) or {}
+    order_no = (data.get('order_no') or '').strip()
+    amount = data.get('amount')
+    currency = (data.get('currency') or 'USD').strip().upper()
+    if not order_no or not amount:
+        return jsonify({'error': '缺少 order_no 或 amount'}), 400
+    try:
+        value = '{:.2f}'.format(float(amount))
+    except (TypeError, ValueError):
+        return jsonify({'error': '金额格式错误'}), 400
+
+    token = _paypal_access_token()
+    if not token:
+        return jsonify({'error': 'PayPal 未配置'}), 500
+
+    base = _paypal_api_base()
+    resp = requests.post(
+        base + '/v2/checkout/orders',
+        headers={'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json'},
+        json={
+            'intent': 'CAPTURE',
+            'purchase_units': [{
+                'reference_id': order_no,
+                'amount': {'currency_code': currency, 'value': value},
+            }],
+            'application_context': {
+                'return_url': f'https://www.alicexie.com/checkout.html?paypal=success&order_no={order_no}',
+                'cancel_url': 'https://www.alicexie.com/checkout.html?paypal=cancel',
+            },
+        },
+        timeout=30,
+    )
+    if resp.status_code != 201:
+        current_app.logger.error(f'PayPal 创建订单失败: {resp.text[:300]}')
+        return jsonify({'error': 'PayPal 创建订单失败'}), 502
+    pp = resp.json()
+    approve_link = next((l['href'] for l in pp.get('links', []) if l.get('rel') == 'approve'), None)
+    return jsonify({'paypal_order_id': pp['id'], 'approve_link': approve_link})
+
+
+@main_bp.route('/api/public/paypal/capture-order', methods=['POST', 'OPTIONS'])
+def paypal_capture_order():
+    """捕获 PayPal 支付，成功后更新本地订单状态为已付款"""
+    if request.method == 'OPTIONS':
+        return ('', 204)
+    data = request.get_json(silent=True) or {}
+    paypal_order_id = (data.get('paypal_order_id') or '').strip()
+    order_no = (data.get('order_no') or '').strip()
+    if not paypal_order_id or not order_no:
+        return jsonify({'error': '缺少参数'}), 400
+
+    token = _paypal_access_token()
+    if not token:
+        return jsonify({'error': 'PayPal 未配置'}), 500
+
+    base = _paypal_api_base()
+    resp = requests.post(
+        base + f'/v2/checkout/orders/{paypal_order_id}/capture',
+        headers={'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json'},
+        json={},
+        timeout=30,
+    )
+    if resp.status_code not in (200, 201):
+        current_app.logger.error(f'PayPal 捕获失败: {resp.text[:300]}')
+        return jsonify({'error': '支付捕获失败'}), 502
+
+    cap = resp.json()
+    status = cap.get('status')
+    if status == 'COMPLETED':
+        order = CustomerOrder.query.filter_by(order_no=order_no).first()
+        if order:
+            order.status = 'paid'
+            order.payment_method = 'paypal'
+            order.updated_at = datetime.now()
+            db.session.commit()
+        return jsonify({'ok': True, 'status': 'paid'})
+    return jsonify({'ok': False, 'status': status})
+
 
 def _get_item(target_type, target_id):
     """根据类型和ID获取物料对象"""

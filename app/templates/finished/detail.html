@@ -25,6 +25,7 @@
             <table style="width:100%;color:#555;">
                 <tr><td style="color:#888;padding:4px 0;width:80px;">成品编号</td><td style="font-family:monospace;">{{ product.product_code or '—' }}</td></tr>
                 <tr><td style="color:#888;padding:4px 0;">名称</td><td><strong>{{ product.name }}</strong></td></tr>
+                <tr><td style="color:#888;padding:4px 0;">英文名</td><td>{{ product.name_en or '—' }}</td></tr>
                 <tr><td style="color:#888;padding:4px 0;">类型</td><td>{{ product.type_display }}</td></tr>
                 <tr><td style="color:#888;padding:4px 0;">材质</td><td>{{ product.material_desc or '—' }}</td></tr>
             </table>
@@ -104,6 +105,11 @@
 <div style="background:#fff;border:1px solid #e0e0e0;border-radius:8px;padding:20px;margin-top:20px;">
     <h3 style="color:#b8973e;margin-bottom:15px;">⚡ 操作</h3>
     <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        <form method="POST" action="{{ url_for('main.finished_toggle_website', id=product.id) }}" style="display:inline;">
+            <button type="submit" style="padding:8px 16px;background:{% if product.show_on_website %}#c44{% else %}#6bc26b{% endif %};color:{% if product.show_on_website %}#fff{% else %}#000{% endif %};border:none;border-radius:6px;cursor:pointer;">
+                {% if product.show_on_website %}🌐 下架官网{% else %}🌐 上架官网{% endif %}
+            </button>
+        </form>
         {% if product.status == 'in_stock' %}
         <form method="POST" action="{{ url_for('main.finished_action', id=product.id, action='out') }}" style="display:inline;">
             <button type="submit" style="padding:8px 16px;background:#c44;color:#fff;border:none;border-radius:6px;cursor:pointer;">📤 出库</button>

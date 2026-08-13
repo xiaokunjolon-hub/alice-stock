@@ -83,6 +83,7 @@ class RawMaterial(db.Model):
     code = db.Column(db.String(60), unique=True, nullable=True)  # 物料编号
     category = db.Column(db.String(30), nullable=False, default='stone')  # gold/silver/platinum/diamond/gemstone/accessory
     name = db.Column(db.String(200), nullable=False)
+    name_en = db.Column(db.String(200), nullable=True)  # 英文名（官网展示用）
     spec = db.Column(db.String(200), nullable=True)  # 规格描述
 
     # 重量相关
@@ -180,6 +181,7 @@ class SemiFinished(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     code = db.Column(db.String(60), unique=True, nullable=True)
     name = db.Column(db.String(200), nullable=False)
+    name_en = db.Column(db.String(200), nullable=True)  # 英文名
 
     type = db.Column(db.String(30), nullable=False, default='wax_model')  # wax_model/casting/setting/polishing/outsource/craftsman
     workflow_order_id = db.Column(db.String(60), nullable=True)  # 关联大系统订单号
@@ -254,12 +256,18 @@ class FinishedProduct(db.Model):
 
     type = db.Column(db.String(40), nullable=True)  # ring/necklace/bracelet/earrings/bangle/other
     material_desc = db.Column(db.String(200), nullable=True)
+    material_desc_en = db.Column(db.String(200), nullable=True)  # 英文材质描述
+    size_spec = db.Column(db.String(120), nullable=True)  # 尺寸/规格，如 11mm / 16寸
+    name_en = db.Column(db.String(200), nullable=True)  # 英文名（英文版官网展示）
+    show_on_website = db.Column(db.Boolean, nullable=False, default=True)  # 是否在官网展示
 
     gold_weight = db.Column(db.Float, nullable=True)
     stone_weight = db.Column(db.Float, nullable=True)
 
     main_stone = db.Column(db.String(200), nullable=True)
+    main_stone_en = db.Column(db.String(200), nullable=True)  # 英文主石
     side_stones = db.Column(db.Text, nullable=True)
+    side_stones_en = db.Column(db.Text, nullable=True)  # 英文配石
 
     # 成本/售价（管理员可见）
     total_cost = db.Column(db.Float, nullable=True)
@@ -357,3 +365,40 @@ class Transaction(db.Model):
 
     def __repr__(self):
         return f'<Transaction {self.type} {self.target_type}:{self.target_id}>'
+
+
+# ══════════════════════════════════════════════════════════
+# 7. CustomerOrder  官网顾客订单
+# ══════════════════════════════════════════════════════════
+
+class CustomerOrder(db.Model):
+    __tablename__ = 'customer_orders'
+
+    id = db.Column(db.Integer, primary_key=True)
+    order_no = db.Column(db.String(40), unique=True, nullable=False)  # 订单号
+    customer_name = db.Column(db.String(80), nullable=False)
+    customer_phone = db.Column(db.String(40), nullable=True)
+    customer_email = db.Column(db.String(120), nullable=True)
+    shipping_address = db.Column(db.String(300), nullable=True)
+
+    items = db.Column(db.Text, nullable=False)  # JSON 数组：[{product_id, name, price, qty}]
+    total_amount = db.Column(db.Float, nullable=False)
+    currency = db.Column(db.String(10), nullable=False, default='CNY')
+
+    status = db.Column(db.String(30), nullable=False, default='pending_payment')  # pending_payment/paid/shipped/completed/cancelled
+    payment_method = db.Column(db.String(30), nullable=True)  # stripe/wechat/alipay
+    remark = db.Column(db.Text, nullable=True)
+
+    created_at = db.Column(db.DateTime, default=datetime.now, nullable=False)
+    updated_at = db.Column(db.DateTime, default=datetime.now, onupdate=datetime.now, nullable=False)
+
+    @property
+    def status_display(self):
+        _map = {
+            'pending_payment': '待付款', 'paid': '已付款',
+            'shipped': '已发货', 'completed': '已完成', 'cancelled': '已取消',
+        }
+        return _map.get(self.status, self.status)
+
+    def __repr__(self):
+        return f'<CustomerOrder {self.order_no}>'

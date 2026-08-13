@@ -5,7 +5,8 @@
 <h2 style="color:#b8973e;margin-bottom:5px;">{{ '编辑' if material and material.id else '录入' }}原材料</h2>
 {% if material and material.id %}<p style="color:#888;margin-bottom:20px;">编号: {{ material.code or '—' }}</p>{% endif %}
 
-<form method="POST" enctype="multipart/form-data" style="max-width:700px;background:#f5f0e8;border:1px solid #e0e0e0;border-radius:8px;padding:30px;">
+<div style="display:flex;gap:24px;align-items:flex-start;">
+<form method="POST" enctype="multipart/form-data" style="flex:1;max-width:700px;background:#f5f0e8;border:1px solid #e0e0e0;border-radius:8px;padding:30px;">
 
     <!-- 基本信息 -->
     <fieldset style="border:1px solid #333;border-radius:6px;padding:15px;margin-bottom:20px;">
@@ -46,6 +47,12 @@
                 <input type="text" name="spec" value="{{ material.spec or '' if material else '' }}"
                        style="width:100%;padding:10px;background:#fff;border:1px solid #e0e0e0;color:#1a1a1a;border-radius:4px;margin-top:4px;">
             </div>
+        </div>
+        <div style="margin-bottom:12px;">
+            <label style="color:#555;">英文名 (English Name)</label>
+            <input type="text" name="name_en" value="{{ material.name_en or '' if material else '' }}"
+                   style="width:100%;padding:10px;background:#fff;border:1px solid #e0e0e0;color:#1a1a1a;border-radius:4px;margin-top:4px;"
+                   placeholder="英文版官网展示用（选填）">
         </div>
     </fieldset>
 
@@ -218,5 +225,67 @@
         <a href="{{ url_for('main.raw_list') }}" style="padding:10px 20px;background:#333;color:#555;border-radius:6px;text-decoration:none;">取消</a>
     </div>
 </form>
+
+<div style="width:340px;flex-shrink:0;background:#f5f0e8;border:1px solid #e0e0e0;border-radius:8px;padding:20px;position:sticky;top:20px;">
+    <h3 style="color:#b8973e;margin:0 0 12px;font-size:1.1rem;">🤖 智能识别录入</h3>
+    <p style="color:#888;font-size:0.85rem;margin:0 0 10px;">粘贴一段物料描述，自动识别分类、规格、重量、形状、颜色、成色、证书等并填入左边表单。</p>
+    <textarea id="ai-text" rows="4" placeholder="例：GIA 1.02克拉 圆形钻石 D色 VVS1 28000"
+              style="width:100%;padding:10px;background:#fff;border:1px solid #e0e0e0;color:#1a1a1a;border-radius:4px;box-sizing:border-box;font-size:0.9rem;resize:vertical;"></textarea>
+    <button type="button" id="ai-parse-btn" onclick="aiParse()"
+            style="width:100%;margin-top:10px;padding:10px;background:#b8973e;color:#fff;border:none;border-radius:6px;font-weight:700;cursor:pointer;">
+        识别并填入
+    </button>
+    <div id="ai-status" style="margin-top:10px;font-size:0.85rem;color:#555;min-height:20px;"></div>
+</div>
+</div>
+
+<script>
+var AI_ENTITY = 'raw';
+var AI_FIELD_MAP = {
+    name: 'name', category: 'category', spec: 'spec',
+    weight: 'weight', unit: 'unit', shape: 'shape', color: 'color',
+    clarity: 'clarity', cert_number: 'cert_number', cert_org: 'cert_org',
+    purity: 'purity', cost_price: 'cost_price', lot_number: 'lot_number', notes: 'notes'
+};
+
+function aiParse() {
+    var text = document.getElementById('ai-text').value.trim();
+    var btn = document.getElementById('ai-parse-btn');
+    var status = document.getElementById('ai-status');
+    if (!text) { status.textContent = '请先粘贴要识别的文字'; status.style.color = '#c44'; return; }
+    btn.disabled = true; btn.textContent = '识别中…';
+    status.textContent = '正在调用 AI 识别…'; status.style.color = '#555';
+    fetch('/api/ai/parse', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({text: text, entity: AI_ENTITY})
+    }).then(function(r) {
+        return r.json().then(function(d) { return {ok: r.ok, data: d}; });
+    }).then(function(res) {
+        if (!res.ok || !res.data.ok) {
+            status.textContent = (res.data && res.data.error) || '识别失败';
+            status.style.color = '#c44';
+            return;
+        }
+        var d = res.data.data || {};
+        var filled = [];
+        for (var key in AI_FIELD_MAP) {
+            var val = d[key];
+            if (val === null || val === undefined || val === '') continue;
+            var el = document.querySelector('[name="' + AI_FIELD_MAP[key] + '"]');
+            if (!el) continue;
+            el.value = val;
+            filled.push(AI_FIELD_MAP[key]);
+        }
+        status.textContent = filled.length ? '✅ 已填入：' + filled.join('、') : '识别完成，但未提取到可填入字段';
+        status.style.color = filled.length ? '#2a7' : '#c90';
+    }).catch(function(e) {
+        status.textContent = '识别出错：' + e;
+        status.style.color = '#c44';
+    }).finally(function() {
+        btn.disabled = false; btn.textContent = '识别并填入';
+    });
+}
+</script>
 
 {% endblock %}

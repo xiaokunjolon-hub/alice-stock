@@ -4,7 +4,8 @@
 
 <h2 style="color:#b8973e;margin-bottom:20px;">{{ '编辑' if product and product.id else '录入' }}成品</h2>
 
-<form method="POST" enctype="multipart/form-data" style="max-width:700px;background:#f5f0e8;border:1px solid #e0e0e0;border-radius:8px;padding:30px;">
+<div style="display:flex;gap:24px;align-items:flex-start;">
+<form method="POST" enctype="multipart/form-data" style="flex:1;max-width:700px;background:#f5f0e8;border:1px solid #e0e0e0;border-radius:8px;padding:30px;">
 
     <fieldset style="border:1px solid #333;border-radius:6px;padding:15px;margin-bottom:20px;">
         <legend style="color:#b8973e;padding:0 8px;">基本信息</legend>
@@ -43,6 +44,33 @@
                        style="width:100%;padding:10px;background:#fff;border:1px solid #e0e0e0;color:#1a1a1a;border-radius:4px;margin-top:4px;"
                        placeholder="如 18K白金 / PT950">
             </div>
+            <div style="flex:1;">
+                <label style="color:#555;">材质英文</label>
+                <input type="text" name="material_desc_en" value="{{ product.material_desc_en or '' if product else '' }}"
+                       style="width:100%;padding:10px;background:#fff;border:1px solid #e0e0e0;color:#1a1a1a;border-radius:4px;margin-top:4px;"
+                       placeholder="如 18K White Gold">
+            </div>
+        </div>
+        <div style="display:flex;gap:15px;">
+            <div style="flex:1;">
+                <label style="color:#555;">尺寸/规格</label>
+                <input type="text" name="size_spec" value="{{ product.size_spec or '' if product else '' }}"
+                       style="width:100%;padding:10px;background:#fff;border:1px solid #e0e0e0;color:#1a1a1a;border-radius:4px;margin-top:4px;"
+                       placeholder="如 11mm / 16寸 / 12号">
+            </div>
+            <div style="flex:1;">
+                <label style="color:#555;">英文名 (English Name)</label>
+                <input type="text" name="name_en" value="{{ product.name_en or '' if product else '' }}"
+                       style="width:100%;padding:10px;background:#fff;border:1px solid #e0e0e0;color:#1a1a1a;border-radius:4px;margin-top:4px;"
+                       placeholder="英文版官网展示用">
+            </div>
+        </div>
+        <div style="margin-top:12px;">
+            <label style="color:#555;display:flex;align-items:center;gap:8px;cursor:pointer;">
+                <input type="checkbox" name="show_on_website" {% if not product or product.show_on_website %}checked{% endif %}
+                       style="width:16px;height:16px;accent-color:#b8973e;">
+                在官网展示（勾选后才会出现在官网）
+            </label>
         </div>
     </fieldset>
 
@@ -71,12 +99,24 @@
                        style="width:100%;padding:10px;background:#fff;border:1px solid #e0e0e0;color:#1a1a1a;border-radius:4px;margin-top:4px;"
                        placeholder="如 1.02ct 圆钻 D VVS1">
             </div>
+            <div style="flex:1;">
+                <label style="color:#555;">主石英文</label>
+                <input type="text" name="main_stone_en" value="{{ product.main_stone_en or '' if product else '' }}"
+                       style="width:100%;padding:10px;background:#fff;border:1px solid #e0e0e0;color:#1a1a1a;border-radius:4px;margin-top:4px;"
+                       placeholder="如 1.02ct Round Diamond D VVS1">
+            </div>
         </div>
         <div>
             <label style="color:#555;">配石</label>
             <textarea name="side_stones" rows="2"
                       style="width:100%;padding:10px;background:#fff;border:1px solid #e0e0e0;color:#1a1a1a;border-radius:4px;margin-top:4px;"
                       placeholder="如 碎钻 0.30ct x 12颗">{{ product.side_stones or '' if product else '' }}</textarea>
+        </div>
+        <div style="margin-top:12px;">
+            <label style="color:#555;">配石英文</label>
+            <textarea name="side_stones_en" rows="2"
+                      style="width:100%;padding:10px;background:#fff;border:1px solid #e0e0e0;color:#1a1a1a;border-radius:4px;margin-top:4px;"
+                      placeholder="如 0.30ct Melee Diamonds x 12">{{ product.side_stones_en or '' if product else '' }}</textarea>
         </div>
     </fieldset>
 
@@ -166,5 +206,114 @@
         <a href="{{ url_for('main.finished_list') }}" style="padding:10px 20px;background:#333;color:#555;border-radius:6px;text-decoration:none;">取消</a>
     </div>
 </form>
+
+<div style="width:340px;flex-shrink:0;background:#f5f0e8;border:1px solid #e0e0e0;border-radius:8px;padding:20px;position:sticky;top:20px;">
+    <h3 style="color:#b8973e;margin:0 0 12px;font-size:1.1rem;">🤖 智能识别录入</h3>
+    <p style="color:#888;font-size:0.85rem;margin:0 0 10px;">粘贴一段商品描述，自动识别名称、类型、主石、尺寸、售价等并填入左边表单（填完可手动改）。</p>
+    <textarea id="ai-text" rows="4" placeholder="例：大溪地黑珍珠 11mm 钻石点缀特惠吊坠 3980"
+              style="width:100%;padding:10px;background:#fff;border:1px solid #e0e0e0;color:#1a1a1a;border-radius:4px;box-sizing:border-box;font-size:0.9rem;resize:vertical;"></textarea>
+    <button type="button" id="ai-parse-btn" onclick="aiParse()"
+            style="width:100%;margin-top:10px;padding:10px;background:#b8973e;color:#fff;border:none;border-radius:6px;font-weight:700;cursor:pointer;">
+        识别并填入
+    </button>
+    <button type="button" id="ai-translate-btn" onclick="aiTranslate()"
+            style="width:100%;margin-top:10px;padding:10px;background:transparent;color:#b8973e;border:1px solid #b8973e;border-radius:6px;font-weight:700;cursor:pointer;">
+        🌐 自动翻译英文
+    </button>
+    <div id="ai-status" style="margin-top:10px;font-size:0.85rem;color:#555;min-height:20px;"></div>
+</div>
+</div>
+
+<script>
+var AI_FIELD_MAP = {
+    name: 'name', type: 'type', material_desc: 'material_desc', size_spec: 'size_spec',
+    main_stone: 'main_stone', side_stones: 'side_stones',
+    gold_weight: 'gold_weight', stone_weight: 'stone_weight',
+    sale_price: 'sale_price', total_cost: 'total_cost', notes: 'notes'
+};
+
+function aiParse() {
+    var text = document.getElementById('ai-text').value.trim();
+    var btn = document.getElementById('ai-parse-btn');
+    var status = document.getElementById('ai-status');
+    if (!text) { status.textContent = '请先粘贴要识别的文字'; status.style.color = '#c44'; return; }
+    btn.disabled = true; btn.textContent = '识别中…';
+    status.textContent = '正在调用 AI 识别…'; status.style.color = '#555';
+    fetch('/api/ai/parse', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({text: text})
+    }).then(function(r) {
+        return r.json().then(function(d) { return {ok: r.ok, data: d}; });
+    }).then(function(res) {
+        if (!res.ok || !res.data.ok) {
+            status.textContent = (res.data && res.data.error) || '识别失败';
+            status.style.color = '#c44';
+            return;
+        }
+        var d = res.data.data || {};
+        var filled = [];
+        for (var key in AI_FIELD_MAP) {
+            var val = d[key];
+            if (val === null || val === undefined || val === '') continue;
+            var el = document.querySelector('[name="' + AI_FIELD_MAP[key] + '"]');
+            if (!el) continue;
+            el.value = val;
+            filled.push(AI_FIELD_MAP[key]);
+        }
+        status.textContent = filled.length ? '✅ 已填入：' + filled.join('、') : '识别完成，但未提取到可填入字段';
+        status.style.color = filled.length ? '#2a7' : '#c90';
+    }).catch(function(e) {
+        status.textContent = '识别出错：' + e;
+        status.style.color = '#c44';
+    }).finally(function() {
+        btn.disabled = false; btn.textContent = '识别并填入';
+    });
+}
+
+function aiTranslate() {
+    var btn = document.getElementById('ai-translate-btn');
+    var status = document.getElementById('ai-status');
+    var zhMap = { name: 'name_en', material_desc: 'material_desc_en', main_stone: 'main_stone_en', side_stones: 'side_stones_en' };
+    var zhVals = {};
+    for (var zh in zhMap) {
+        var el = document.querySelector('[name="' + zh + '"]');
+        if (el && el.value.trim()) zhVals[zh] = el.value.trim();
+    }
+    if (!Object.keys(zhVals).length) { status.textContent = '请先填写中文名称/材质/主石等字段'; status.style.color = '#c44'; return; }
+    btn.disabled = true; btn.textContent = '翻译中…';
+    status.textContent = '正在翻译…'; status.style.color = '#555';
+    fetch('/api/ai/translate', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({fields: zhVals})
+    }).then(function(r) {
+        return r.json().then(function(d) { return {ok: r.ok, data: d}; });
+    }).then(function(res) {
+        if (!res.ok || !res.data.ok) {
+            status.textContent = (res.data && res.data.error) || '翻译失败';
+            status.style.color = '#c44';
+            return;
+        }
+        var d = res.data.data || {};
+        var filled = [];
+        for (var zh in zhVals) {
+            var enVal = d[zh];
+            if (!enVal) continue;
+            var el = document.querySelector('[name="' + zhMap[zh] + '"]');
+            if (!el) continue;
+            el.value = enVal;
+            filled.push(zhMap[zh]);
+        }
+        status.textContent = filled.length ? '✅ 已翻译填入：' + filled.join('、') + '（可手动微调）' : '翻译完成，但未返回结果';
+        status.style.color = filled.length ? '#2a7' : '#c90';
+    }).catch(function(e) {
+        status.textContent = '翻译出错：' + e;
+        status.style.color = '#c44';
+    }).finally(function() {
+        btn.disabled = false; btn.textContent = '🌐 自动翻译英文';
+    });
+}
+</script>
 
 {% endblock %}

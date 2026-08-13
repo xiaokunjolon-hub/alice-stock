@@ -22,3 +22,13 @@ class Config:
     # 缩略图
     THUMBNAIL_FOLDER = os.path.join(BASEDIR, 'uploads', 'thumbnails')
     THUMBNAIL_SIZE = (400, 400)
+
+    # DeepSeek AI 识别
+    DEEPSEEK_API_KEY = os.environ.get('DEEPSEEK_API_KEY')
+    DEEPSEEK_BASE_URL = os.environ.get('DEEPSEEK_BASE_URL', 'https://api.deepseek.com')
+    DEEPSEEK_MODEL = os.environ.get('DEEPSEEK_MODEL', 'deepseek-chat')
+
+    # PayPal 支付
+    PAYPAL_CLIENT_ID = os.environ.get('PAYPAL_CLIENT_ID')
+    PAYPAL_CLIENT_SECRET = os.environ.get('PAYPAL_CLIENT_SECRET')
+    PAYPAL_MODE = os.environ.get('PAYPAL_MODE', 'sandbox')  # sandbox / live
