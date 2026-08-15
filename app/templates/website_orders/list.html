@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+{% block title %}官网订单{% endblock %}
+{% block content %}
+
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+    <h2 style="color:#b8973e;margin:0;">🛍️ 官网订单</h2>
+    <span style="color:#888;font-size:0.8rem;">成品销售 · 顾客通过官网下单</span>
+</div>
+
+<!-- 状态统计 -->
+{% set total_all = status_counts.values() | sum %}
+<div style="display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap;">
+    <a href="{{ url_for('main.website_order_list') }}" class="stat-chip {% if not status %}active{% endif %}">
+        全部 <strong>{{ total_all }}</strong>
+    </a>
+    <a href="?status=pending_payment" class="stat-chip {% if status == 'pending_payment' %}active{% endif %}" style="border-color:#e6c36b;">
+        待付款 <strong>{{ status_counts.pending_payment }}</strong>
+    </a>
+    <a href="?status=paid" class="stat-chip {% if status == 'paid' %}active{% endif %}" style="border-color:#6bc26b;">
+        已付款 <strong>{{ status_counts.paid }}</strong>
+    </a>
+    <a href="?status=shipped" class="stat-chip {% if status == 'shipped' %}active{% endif %}" style="border-color:#5b9bd5;">
+        已发货 <strong>{{ status_counts.shipped }}</strong>
+    </a>
+    <a href="?status=completed" class="stat-chip {% if status == 'completed' %}active{% endif %}" style="border-color:#6bc26b;">
+        已完成 <strong>{{ status_counts.completed }}</strong>
+    </a>
+    <a href="?status=cancelled" class="stat-chip {% if status == 'cancelled' %}active{% endif %}" style="border-color:#e07878;">
+        已取消 <strong>{{ status_counts.cancelled }}</strong>
+    </a>
+</div>
+
+<style>
+.stat-chip {
+    padding: 8px 16px; background: #fff; border: 1px solid #e0e0e0; border-radius: 20px;
+    color: #555; text-decoration: none; font-size: 0.85rem; display: inline-flex; gap: 6px; align-items: center;
+}
+.stat-chip.active { background: #b8973e; color: #fff; border-color: #b8973e; }
+.stat-chip:hover { opacity: 0.85; }
+</style>
+
+<!-- 搜索 + 筛选 -->
+<form method="GET" style="display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;">
+    <input type="text" name="q" value="{{ search }}" placeholder="搜订单号 / 客户名 / 电话 / 邮箱..."
+           style="flex:2;min-width:220px;padding:10px;background:#fff;border:1px solid #e0e0e0;color:#1a1a1a;border-radius:6px;">
+    <select name="status" style="padding:10px;background:#fff;border:1px solid #e0e0e0;color:#1a1a1a;border-radius:6px;">
+        <option value="">全部状态</option>
+        <option value="pending_payment" {% if status == 'pending_payment' %}selected{% endif %}>待付款</option>
+        <option value="paid" {% if status == 'paid' %}selected{% endif %}>已付款</option>
+        <option value="shipped" {% if status == 'shipped' %}selected{% endif %}>已发货</option>
+        <option value="completed" {% if status == 'completed' %}selected{% endif %}>已完成</option>
+        <option value="cancelled" {% if status == 'cancelled' %}selected{% endif %}>已取消</option>
+    </select>
+    <button type="submit" style="padding:10px 20px;background:#b8973e;color:#fff;border:none;border-radius:6px;cursor:pointer;font-weight:600;">搜索</button>
+    {% if search or status %}
+    <a href="{{ url_for('main.website_order_list') }}" style="padding:10px 15px;color:#b8973e;text-decoration:none;line-height:2.5;">清除</a>
+    {% endif %}
+</form>
+
+{% if orders %}
+<p style="color:#888;margin-bottom:15px;">共 {{ pagination.total }} 条订单</p>
+
+<table style="width:100%;border-collapse:collapse;">
+    <thead>
+        <tr style="border-bottom:2px solid #e0e0e0;color:#888;text-align:left;">
+            <th style="padding:10px;">订单号</th>
+            <th>客户</th>
+            <th>商品</th>
+            <th>金额</th>
+            <th>支付</th>
+            <th>状态</th>
+            <th>下单时间</th>
+            <th>操作</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for o in orders %}
+        {% set s_map = {
+            'pending_payment': ('badge-yellow', '待付款'),
+            'paid': ('badge-green', '已付款'),
+            'shipped': ('badge-blue', '已发货'),
+            'completed': ('badge-green', '已完成'),
+            'cancelled': ('badge-red', '已取消')
+        } %}
+        {% set pay_map = {'paypal': 'PayPal', 'stripe': 'Stripe', 'wechat': '微信', 'alipay': '支付宝'} %}
+        {% set cur = '¥' if o.currency == 'CNY' else ('$' if o.currency == 'USD' else (o.currency + ' ')) %}
+        <tr style="border-bottom:1px solid #f0f0f0;">
+            <td style="padding:10px;font-family:monospace;color:#b8973e;">{{ o.order_no }}</td>
+            <td>
+                <strong>{{ o.customer_name }}</strong>
+                {% if o.customer_phone %}<br><small style="color:#888;">{{ o.customer_phone }}</small>{% endif %}
+            </td>
+            <td style="font-size:0.85rem;max-width:220px;">{{ o.item_summary }}</td>
+            <td style="font-weight:600;white-space:nowrap;">{{ cur }}{{ '%.2f' | format(o.total_amount) }}</td>
+            <td style="font-size:0.85rem;">{{ pay_map.get(o.payment_method, o.payment_method or '—') }}</td>
+            <td><span class="{{ s_map.get(o.status, ('badge-gray',''))[0] }}" style="font-size:0.75rem;">{{ s_map.get(o.status, ('badge-gray', o.status))[1] }}</span></td>
+            <td style="font-size:0.85rem;color:#888;white-space:nowrap;">{{ o.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+            <td>
+                <a href="{{ url_for('main.website_order_detail', order_id=o.id) }}" style="color:#b8973e;text-decoration:none;">详情</a>
+            </td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+
+{% if pagination.pages > 1 %}
+<div style="text-align:center;margin-top:20px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">
+    {% if pagination.has_prev %}
+    <a href="?page={{ pagination.prev_num }}&q={{ search }}&status={{ status }}" style="padding:6px 14px;background:#fff;color:#555;border:1px solid #e0e0e0;border-radius:4px;text-decoration:none;">上一页</a>
+    {% endif %}
+    {% for p in range(1, pagination.pages + 1) %}
+        {% if p == pagination.page %}
+        <span style="padding:6px 14px;background:#b8973e;color:#fff;border-radius:4px;">{{ p }}</span>
+        {% elif p <= 3 or p > pagination.pages - 3 or (p >= pagination.page - 2 and p <= pagination.page + 2) %}
+        <a href="?page={{ p }}&q={{ search }}&status={{ status }}" style="padding:6px 14px;background:#fff;color:#555;border:1px solid #e0e0e0;border-radius:4px;text-decoration:none;">{{ p }}</a>
+        {% endif %}
+    {% endfor %}
+    {% if pagination.has_next %}
+    <a href="?page={{ pagination.next_num }}&q={{ search }}&status={{ status }}" style="padding:6px 14px;background:#fff;color:#555;border:1px solid #e0e0e0;border-radius:4px;text-decoration:none;">下一页</a>
+    {% endif %}
+</div>
+{% endif %}
+
+{% else %}
+<p style="color:#888;text-align:center;padding:60px;">
+    {% if search or status %}
+    没有匹配的订单<br><a href="{{ url_for('main.website_order_list') }}" style="color:#b8973e;">清除筛选</a>
+    {% else %}
+    还没有官网订单<br><small>顾客在官网下单并付款后，会出现在这里</small>
+    {% endif %}
+</p>
+{% endif %}
+
+{% endblock %}

@@ -2184,3 +2184,103 @@ def order_search_api():
             'status': wf_status_display(o.get('status', '')),
         })
     return {'results': results}
+
+
+# ══════════════════════════════════════════════════════════
+# 官网顾客订单管理（成品销售订单）
+# ══════════════════════════════════════════════════════════
+
+WEBSITE_ORDER_STATUS = ('pending_payment', 'paid', 'shipped', 'completed', 'cancelled')
+
+
+def _order_item_summary(order):
+    """解析订单商品，生成列表页摘要文字"""
+    try:
+        items = json.loads(order.items) if order.items else []
+    except (json.JSONDecodeError, TypeError):
+        items = []
+    if not items:
+        return '—'
+    total_qty = sum(int(it.get('qty', 1)) for it in items if isinstance(it, dict))
+    first = items[0] if isinstance(items[0], dict) else {}
+    first_name = first.get('name', '') or '商品'
+    if len(items) == 1:
+        return f'{first_name} ×{int(first.get("qty", 1))}'
+    return f'{first_name} 等 {total_qty} 件'
+
+
+@main_bp.route('/website-orders')
+@login_required
+def website_order_list():
+    """官网顾客订单列表（成品销售）"""
+    search = request.args.get('q', '').strip()
+    status = request.args.get('status', '').strip()
+    page = request.args.get('page', 1, type=int)
+    per_page = 30
+
+    query = CustomerOrder.query
+    if search:
+        like = f'%{search}%'
+        query = query.filter(db.or_(
+            CustomerOrder.order_no.like(like),
+            CustomerOrder.customer_name.like(like),
+            CustomerOrder.customer_phone.like(like),
+            CustomerOrder.customer_email.like(like),
+        ))
+    if status in WEBSITE_ORDER_STATUS:
+        query = query.filter(CustomerOrder.status == status)
+
+    total = query.count()
+    pages = ceil(total / per_page) if total > 0 else 1
+    orders = (query
+              .order_by(CustomerOrder.created_at.desc())
+              .offset((page - 1) * per_page)
+              .limit(per_page)
+              .all())
+
+    # 各状态数量（用于顶部统计）
+    status_counts = {s: CustomerOrder.query.filter_by(status=s).count() for s in WEBSITE_ORDER_STATUS}
+
+    # 解析每单商品，生成列表页摘要
+    for o in orders:
+        o.item_summary = _order_item_summary(o)
+
+    pagination = {
+        'page': page, 'pages': pages, 'total': total,
+        'has_prev': page > 1, 'has_next': page < pages,
+        'prev_num': page - 1, 'next_num': page + 1,
+    }
+
+    return render_template('website_orders/list.html',
+                           orders=orders, pagination=pagination,
+                           search=search, status=status,
+                           status_counts=status_counts)
+
+
+@main_bp.route('/website-orders/<int:order_id>')
+@login_required
+def website_order_detail(order_id):
+    """官网顾客订单详情"""
+    order = CustomerOrder.query.get_or_404(order_id)
+    items = []
+    try:
+        items = json.loads(order.items) if order.items else []
+    except (json.JSONDecodeError, TypeError):
+        items = []
+    return render_template('website_orders/detail.html', order=order, items=items)
+
+
+@main_bp.route('/website-orders/<int:order_id>/status', methods=['POST'])
+@login_required
+def website_order_status(order_id):
+    """更新官网订单状态（待付款→已付款→已发货→已完成 / 取消）"""
+    order = CustomerOrder.query.get_or_404(order_id)
+    new_status = (request.form.get('status') or '').strip()
+    if new_status not in WEBSITE_ORDER_STATUS:
+        flash('非法状态', 'error')
+        return redirect(url_for('main.website_order_detail', order_id=order_id))
+
+    order.status = new_status
+    db.session.commit()
+    flash(f'订单 {order.order_no} 已更新为「{order.status_display}」', 'success')
+    return redirect(url_for('main.website_order_detail', order_id=order_id))

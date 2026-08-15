@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+{% block title %}官网订单详情{% endblock %}
+{% block content %}
+
+{% set s_map = {
+    'pending_payment': ('badge-yellow', '待付款'),
+    'paid': ('badge-green', '已付款'),
+    'shipped': ('badge-blue', '已发货'),
+    'completed': ('badge-green', '已完成'),
+    'cancelled': ('badge-red', '已取消')
+} %}
+{% set pay_map = {'paypal': 'PayPal', 'stripe': 'Stripe', 'wechat': '微信', 'alipay': '支付宝'} %}
+{% set cur = '¥' if order.currency == 'CNY' else ('$' if order.currency == 'USD' else (order.currency + ' ')) %}
+
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+    <h2 style="color:#b8973e;margin:0;">🛍️ 订单详情</h2>
+    <a href="{{ url_for('main.website_order_list') }}" style="color:#b8973e;text-decoration:none;">← 返回订单列表</a>
+</div>
+
+<!-- 订单概要 -->
+<div style="background:#fff;border:1px solid #e0e0e0;border-radius:8px;padding:20px;margin-bottom:20px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:15px;">
+        <div style="font-family:monospace;font-size:1.1rem;color:#b8973e;">{{ order.order_no }}</div>
+        <span class="{{ s_map.get(order.status, ('badge-gray',''))[0] }}" style="font-size:0.85rem;">{{ s_map.get(order.status, ('badge-gray', order.status))[1] }}</span>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;color:#555;font-size:0.9rem;">
+        <div>金额：<strong style="color:#b8973e;">{{ cur }}{{ '%.2f' | format(order.total_amount) }}</strong></div>
+        <div>币种：{{ order.currency or '—' }}</div>
+        <div>支付方式：{{ pay_map.get(order.payment_method, order.payment_method or '未支付') }}</div>
+        <div>下单时间：{{ order.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</div>
+        <div>更新时间：{{ order.updated_at.strftime('%Y-%m-%d %H:%M:%S') }}</div>
+    </div>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px;">
+    <!-- 顾客信息 -->
+    <div style="background:#fff;border:1px solid #e0e0e0;border-radius:8px;padding:20px;">
+        <h3 style="color:#b8973e;margin:0 0 15px;font-size:1rem;">👤 顾客信息</h3>
+        <table style="width:100%;font-size:0.9rem;color:#555;">
+            <tr><td style="padding:6px 0;color:#888;width:80px;">姓名</td><td><strong>{{ order.customer_name }}</strong></td></tr>
+            <tr><td style="padding:6px 0;color:#888;">电话</td><td>{{ order.customer_phone or '—' }}</td></tr>
+            <tr><td style="padding:6px 0;color:#888;">邮箱</td><td>{{ order.customer_email or '—' }}</td></tr>
+            <tr><td style="padding:6px 0;color:#888;">地址</td><td>{{ order.shipping_address or '—' }}</td></tr>
+        </table>
+    </div>
+
+    <!-- 备注 -->
+    <div style="background:#fff;border:1px solid #e0e0e0;border-radius:8px;padding:20px;">
+        <h3 style="color:#b8973e;margin:0 0 15px;font-size:1rem;">📝 顾客备注</h3>
+        {% if order.remark %}
+        <p style="color:#555;font-size:0.9rem;line-height:1.6;white-space:pre-wrap;">{{ order.remark }}</p>
+        {% else %}
+        <p style="color:#888;font-size:0.9rem;">无备注</p>
+        {% endif %}
+    </div>
+</div>
+
+<!-- 商品明细 -->
+<div style="background:#fff;border:1px solid #e0e0e0;border-radius:8px;padding:20px;margin-bottom:20px;">
+    <h3 style="color:#b8973e;margin:0 0 15px;font-size:1rem;">💍 商品明细</h3>
+    {% if items %}
+    <table style="width:100%;border-collapse:collapse;">
+        <thead>
+            <tr style="border-bottom:2px solid #e0e0e0;color:#888;text-align:left;">
+                <th style="padding:8px;">商品</th>
+                <th>单价</th>
+                <th>数量</th>
+                <th style="text-align:right;">小计</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for it in items %}
+            <tr style="border-bottom:1px solid #f0f0f0;">
+                <td style="padding:10px;font-size:0.9rem;">{{ it.get('name', '商品') }}</td>
+                <td style="padding:10px;font-size:0.9rem;color:#555;">{{ cur }}{{ '%.2f' | format(it.get('price', 0)) }}</td>
+                <td style="padding:10px;font-size:0.9rem;color:#555;">×{{ it.get('qty', 1) }}</td>
+                <td style="padding:10px;font-size:0.9rem;font-weight:600;text-align:right;">{{ cur }}{{ '%.2f' | format(it.get('price', 0) * it.get('qty', 1)) }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+        <tfoot>
+            <tr>
+                <td colspan="3" style="padding:12px 10px;text-align:right;color:#888;">合计</td>
+                <td style="padding:12px 10px;text-align:right;font-weight:700;color:#b8973e;font-size:1.1rem;">{{ cur }}{{ '%.2f' | format(order.total_amount) }}</td>
+            </tr>
+        </tfoot>
+    </table>
+    {% else %}
+    <p style="color:#888;">无商品明细</p>
+    {% endif %}
+</div>
+
+<!-- 状态操作 -->
+<div style="background:#fff;border:1px solid #e0e0e0;border-radius:8px;padding:20px;">
+    <h3 style="color:#b8973e;margin:0 0 15px;font-size:1rem;">⚙️ 订单操作</h3>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        {% if order.status == 'pending_payment' %}
+        <form method="POST" action="{{ url_for('main.website_order_status', order_id=order.id) }}" style="display:inline;">
+            <input type="hidden" name="status" value="paid">
+            <button type="submit" style="padding:10px 20px;background:#6bc26b;color:#fff;border:none;border-radius:6px;cursor:pointer;font-weight:600;">确认已付款</button>
+        </form>
+        <form method="POST" action="{{ url_for('main.website_order_status', order_id=order.id) }}" style="display:inline;"
+              onsubmit="return confirm('确定取消该订单？');">
+            <input type="hidden" name="status" value="cancelled">
+            <button type="submit" style="padding:10px 20px;background:#e07878;color:#fff;border:none;border-radius:6px;cursor:pointer;font-weight:600;">取消订单</button>
+        </form>
+        {% elif order.status == 'paid' %}
+        <form method="POST" action="{{ url_for('main.website_order_status', order_id=order.id) }}" style="display:inline;">
+            <input type="hidden" name="status" value="shipped">
+            <button type="submit" style="padding:10px 20px;background:#5b9bd5;color:#fff;border:none;border-radius:6px;cursor:pointer;font-weight:600;">标记已发货</button>
+        </form>
+        {% elif order.status == 'shipped' %}
+        <form method="POST" action="{{ url_for('main.website_order_status', order_id=order.id) }}" style="display:inline;">
+            <input type="hidden" name="status" value="completed">
+            <button type="submit" style="padding:10px 20px;background:#6bc26b;color:#fff;border:none;border-radius:6px;cursor:pointer;font-weight:600;">标记已完成</button>
+        </form>
+        {% else %}
+        <p style="color:#888;font-size:0.9rem;margin:0;">该订单已结束（{{ s_map.get(order.status, ('badge-gray', order.status))[1] }}），无需操作。</p>
+        {% endif %}
+    </div>
+</div>
+
+{% endblock %}
