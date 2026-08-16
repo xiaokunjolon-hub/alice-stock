@@ -32,3 +32,10 @@ class Config:
     PAYPAL_CLIENT_ID = os.environ.get('PAYPAL_CLIENT_ID')
     PAYPAL_CLIENT_SECRET = os.environ.get('PAYPAL_CLIENT_SECRET')
     PAYPAL_MODE = os.environ.get('PAYPAL_MODE', 'sandbox')  # sandbox / live
+
+    # 支付宝支付（电脑网站支付）
+    ALIPAY_APP_ID = os.environ.get('ALIPAY_APP_ID')
+    ALIPAY_PRIVATE_KEY = os.environ.get('ALIPAY_PRIVATE_KEY')  # 应用私钥（base64, PKCS#8 DER）
+    ALIPAY_PUBLIC_KEY = os.environ.get('ALIPAY_PUBLIC_KEY')    # 支付宝公钥（base64, SPKI DER）
+    ALIPAY_GATEWAY = os.environ.get('ALIPAY_GATEWAY', 'https://openapi.alipay.com/gateway.do')
+

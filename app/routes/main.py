@@ -1889,6 +1889,142 @@ def paypal_capture_order():
     return jsonify({'ok': False, 'status': status})
 
 
+# ══════════════════════════════════════════════════════════
+# 支付宝支付（国内收款 · 电脑网站支付）
+# ══════════════════════════════════════════════════════════
+import base64
+from urllib.parse import urlencode
+
+
+def _b64_der_to_pem(b64, kind):
+    """单行 base64(DER) → PEM 文本，供 cryptography 加载"""
+    body = '\n'.join(b64[i:i + 64] for i in range(0, len(b64), 64))
+    return '-----BEGIN %s-----\n%s\n-----END %s-----' % (kind, body, kind)
+
+
+def _alipay_private_key():
+    b64 = current_app.config.get('ALIPAY_PRIVATE_KEY')
+    if not b64:
+        return None
+    from cryptography.hazmat.primitives.serialization import load_pem_private_key
+    return load_pem_private_key(_b64_der_to_pem(b64, 'PRIVATE KEY').encode(), password=None)
+
+
+def _alipay_public_key():
+    b64 = current_app.config.get('ALIPAY_PUBLIC_KEY')
+    if not b64:
+        return None
+    from cryptography.hazmat.primitives.serialization import load_pem_public_key
+    return load_pem_public_key(_b64_der_to_pem(b64, 'PUBLIC KEY').encode())
+
+
+def _alipay_sign_string(params):
+    """按 key 字母序拼 key=value（跳过空值），即 RSA2 签名原文"""
+    items = sorted((k, v) for k, v in params.items() if v not in (None, ''))
+    return '&'.join('%s=%s' % (k, v) for k, v in items)
+
+
+def _alipay_sign(params):
+    from cryptography.hazmat.primitives import hashes
+    from cryptography.hazmat.primitives.asymmetric import padding
+    key = _alipay_private_key()
+    if not key:
+        return None
+    content = _alipay_sign_string(params)
+    sig = key.sign(content.encode('utf-8'), padding.PKCS1v15(), hashes.SHA256())
+    return base64.b64encode(sig).decode()
+
+
+def _alipay_verify(params, signature):
+    from cryptography.hazmat.primitives import hashes
+    from cryptography.hazmat.primitives.asymmetric import padding
+    key = _alipay_public_key()
+    if not key or not signature:
+        return False
+    content = _alipay_sign_string(params)
+    try:
+        key.verify(base64.b64decode(signature), content.encode('utf-8'),
+                   padding.PKCS1v15(), hashes.SHA256())
+        return True
+    except Exception:
+        return False
+
+
+@main_bp.route('/api/public/alipay/create-order', methods=['POST', 'OPTIONS'])
+def alipay_create_order():
+    """创建支付宝电脑网站支付订单，返回跳转收银台的 URL"""
+    if request.method == 'OPTIONS':
+        return ('', 204)
+    data = request.get_json(silent=True) or {}
+    order_no = (data.get('order_no') or '').strip()
+    amount = data.get('amount')
+    if not order_no or not amount:
+        return jsonify({'error': '缺少 order_no 或 amount'}), 400
+    try:
+        total = '{:.2f}'.format(float(amount))
+    except (TypeError, ValueError):
+        return jsonify({'error': '金额格式错误'}), 400
+
+    app_id = current_app.config.get('ALIPAY_APP_ID')
+    if not app_id or not _alipay_private_key():
+        return jsonify({'error': '支付宝未配置'}), 500
+
+    order = CustomerOrder.query.filter_by(order_no=order_no).first()
+    if not order:
+        return jsonify({'error': '订单不存在'}), 404
+
+    biz_content = json.dumps({
+        'out_trade_no': order_no,
+        'total_amount': total,
+        'subject': '艾丽斯珠宝订单 ' + order_no,
+        'product_code': 'FAST_INSTANT_TRADE_PAY',
+    }, ensure_ascii=False, separators=(',', ':'))
+
+    params = {
+        'app_id': app_id,
+        'method': 'alipay.trade.page.pay',
+        'format': 'JSON',
+        'charset': 'utf-8',
+        'sign_type': 'RSA2',
+        'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+        'version': '1.0',
+        'notify_url': 'https://stock.alicexie.com/api/public/alipay/notify',
+        'return_url': 'https://www.alicexie.com/checkout.html?alipay=success&order_no=' + order_no,
+        'biz_content': biz_content,
+    }
+    sign = _alipay_sign(params)
+    if not sign:
+        return jsonify({'error': '支付宝签名失败'}), 500
+    params['sign'] = sign
+
+    gateway = current_app.config.get('ALIPAY_GATEWAY', 'https://openapi.alipay.com/gateway.do')
+    return jsonify({'alipay_url': gateway + '?' + urlencode(params)})
+
+
+@main_bp.route('/api/public/alipay/notify', methods=['POST'])
+def alipay_notify():
+    """支付宝异步通知 — 验签通过后把订单置为已付款，返回 success"""
+    form = request.form.to_dict()
+    signature = form.pop('sign', '')
+    form.pop('sign_type', None)
+    if not _alipay_verify(form, signature):
+        current_app.logger.error('支付宝通知验签失败: %s', request.form.get('out_trade_no'))
+        return 'failure', 400
+
+    order_no = form.get('out_trade_no')
+    trade_status = form.get('trade_status')
+    if trade_status not in ('TRADE_SUCCESS', 'TRADE_FINISHED'):
+        return 'success'
+
+    order = CustomerOrder.query.filter_by(order_no=order_no).first()
+    if order and order.status != 'paid':
+        order.status = 'paid'
+        order.payment_method = 'alipay'
+        order.updated_at = datetime.now()
+        db.session.commit()
+    return 'success'
+
+
 def _get_item(target_type, target_id):
     """根据类型和ID获取物料对象"""
     model_map = {'raw': RawMaterial, 'semi': SemiFinished, 'finished': FinishedProduct}
