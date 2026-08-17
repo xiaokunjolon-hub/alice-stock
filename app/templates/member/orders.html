@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>会员中心 · 艾丽斯珠宝</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif; background: #f6f4f0; color: #333; }
+  .page { max-width: 720px; margin: 0 auto; padding: 0 16px 40px; }
+
+  /* 顶部用户卡 */
+  .profile { display: flex; align-items: center; gap: 14px; background: linear-gradient(135deg, #8a6d3b, #c9a24b); border-radius: 14px; padding: 22px 20px; margin-top: 16px; color: #fff; }
+  .avatar { width: 56px; height: 56px; border-radius: 50%; background: rgba(255,255,255,.22); display: flex; align-items: center; justify-content: center; font-size: 26px; font-weight: 600; letter-spacing: 1px; border: 1px solid rgba(255,255,255,.4); flex-shrink: 0; }
+  .pinfo .pname { font-size: 19px; font-weight: 600; }
+  .pinfo .psub { font-size: 12px; opacity: .85; margin-top: 4px; }
+
+  /* 订单状态快捷入口 */
+  .status-bar { display: flex; background: #fff; border-radius: 12px; margin-top: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,.04); }
+  .s-item { flex: 1; text-align: center; padding: 14px 0; text-decoration: none; color: inherit; position: relative; }
+  .s-item .s-num { display: block; font-size: 20px; font-weight: 600; color: #8a6d3b; }
+  .s-item .s-label { display: block; font-size: 12px; color: #888; margin-top: 4px; }
+  .s-item.active .s-label { color: #8a6d3b; font-weight: 600; }
+  .s-item + .s-item::before { content: ''; position: absolute; left: 0; top: 22%; height: 56%; width: 1px; background: #f0ede8; }
+
+  /* 区块 */
+  .section { background: #fff; border-radius: 12px; margin-top: 12px; padding: 16px; box-shadow: 0 1px 3px rgba(0,0,0,.04); }
+  .section-title { font-size: 15px; font-weight: 600; color: #8a6d3b; margin-bottom: 12px; }
+
+  /* 订单卡片 */
+  .order-list { display: flex; flex-direction: column; gap: 10px; }
+  .order-card { display: block; border: 1px solid #f0ede8; border-radius: 10px; padding: 13px 14px; text-decoration: none; color: inherit; transition: border-color .15s; }
+  .order-card:hover { border-color: #d8c49a; }
+  .order-card .row { display: flex; justify-content: space-between; align-items: center; }
+  .order-card .no { font-weight: 600; font-size: 14px; font-family: ui-monospace, monospace; }
+  .order-card .meta { margin-top: 7px; font-size: 12px; color: #999; display: flex; justify-content: space-between; align-items: center; }
+  .order-card .amount { font-weight: 600; color: #c9a24b; font-size: 15px; }
+  .badge { font-size: 11px; padding: 3px 10px; border-radius: 20px; white-space: nowrap; }
+  .badge.pending_payment { background: #fff4e0; color: #c77c1a; }
+  .badge.paid { background: #e8f4fd; color: #1a6fc7; }
+  .badge.shipped { background: #e9f3e6; color: #3a8a3a; }
+  .badge.completed { background: #eee; color: #777; }
+  .badge.cancelled { background: #fdeaea; color: #c0392b; }
+
+  .empty { text-align: center; color: #bbb; padding: 40px 0; font-size: 14px; }
+
+  /* 底部操作 */
+  .actions { display: flex; gap: 12px; margin-top: 16px; }
+  .btn { flex: 1; text-align: center; padding: 13px 0; border-radius: 10px; text-decoration: none; font-size: 14px; border: 1px solid #d8c49a; color: #8a6d3b; background: #fff; }
+  .btn.primary { background: #8a6d3b; color: #fff; border-color: #8a6d3b; }
+</style>
+</head>
+<body>
+  <div class="page">
+
+    <!-- 顶部用户卡 -->
+    <div class="profile">
+      <div class="avatar">艾</div>
+      <div class="pinfo">
+        <div class="pname">{{ nickname or '支付宝用户' }}</div>
+        <div class="psub">支付宝快捷登录 · 会员号 {{ member_id }}</div>
+      </div>
+    </div>
+
+    <!-- 订单状态快捷入口 -->
+    <div class="status-bar">
+      <a class="s-item {{ 'active' if not current_status else '' }}" href="/member/orders">
+        <span class="s-num">{{ orders|length if not current_status else status_counts.values()|sum }}</span>
+        <span class="s-label">全部</span>
+      </a>
+      <a class="s-item {{ 'active' if current_status == 'pending_payment' else '' }}" href="/member/orders?status=pending_payment">
+        <span class="s-num">{{ status_counts.get('pending_payment', 0) }}</span>
+        <span class="s-label">待付款</span>
+      </a>
+      <a class="s-item {{ 'active' if current_status == 'paid' else '' }}" href="/member/orders?status=paid">
+        <span class="s-num">{{ status_counts.get('paid', 0) }}</span>
+        <span class="s-label">已付款</span>
+      </a>
+      <a class="s-item {{ 'active' if current_status == 'shipped' else '' }}" href="/member/orders?status=shipped">
+        <span class="s-num">{{ status_counts.get('shipped', 0) }}</span>
+        <span class="s-label">已发货</span>
+      </a>
+      <a class="s-item {{ 'active' if current_status == 'completed' else '' }}" href="/member/orders?status=completed">
+        <span class="s-num">{{ status_counts.get('completed', 0) }}</span>
+        <span class="s-label">已完成</span>
+      </a>
+    </div>
+
+    <!-- 我的订单 -->
+    <div class="section">
+      <div class="section-title">我的订单{% if current_status %} · {{ {'pending_payment':'待付款','paid':'已付款','shipped':'已发货','completed':'已完成','cancelled':'已取消'}.get(current_status, '') }}{% endif %}</div>
+      {% if orders %}
+      <div class="order-list">
+        {% for o in orders %}
+        <a class="order-card" href="/member/orders/{{ o.id }}">
+          <div class="row">
+            <span class="no">{{ o.order_no }}</span>
+            <span class="badge {{ o.status }}">{{ o.status_display }}</span>
+          </div>
+          <div class="meta">
+            <span>{{ o.created_at.strftime('%Y-%m-%d %H:%M') }}</span>
+            <span class="amount">¥{{ '%.2f'|format(o.total_amount) }}</span>
+          </div>
+        </a>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="empty">暂无订单</div>
+      {% endif %}
+    </div>
+
+    <!-- 底部操作 -->
+    <div class="actions">
+      <a class="btn" href="https://custom.alicexie.com/alipay/switch?next=https://stock.alicexie.com/member/orders">切换账号</a>
+      <a class="btn" href="https://custom.alicexie.com/alipay/logout?next=https://www.alicexie.com">退出登录</a>
+    </div>
+
+  </div>
+</body>
+</html>

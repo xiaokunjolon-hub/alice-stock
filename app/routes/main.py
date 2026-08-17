@@ -2,6 +2,7 @@ import os
 import io
 import json
 import uuid
+import jwt
 from datetime import datetime
 from math import ceil
 
@@ -15,6 +16,9 @@ from openpyxl.styles import Font, PatternFill, Alignment
 from openpyxl.utils import get_column_letter
 
 import requests
+import smtplib
+from email.mime.text import MIMEText
+from email.header import Header
 
 from app.extensions import db
 from app.models import Supplier, RawMaterial, SemiFinished, FinishedProduct, Transaction, CustomerOrder
@@ -1717,12 +1721,113 @@ def public_product_detail(product_id):
 
 @main_bp.after_request
 def _public_cors(resp):
-    """公开 API 统一 CORS（含 OPTIONS 预检）"""
+    """公开 API 统一 CORS（含 OPTIONS 预检，支持带 Cookie 的会员请求）"""
     if request.path.startswith('/api/public/'):
-        resp.headers['Access-Control-Allow-Origin'] = '*'
+        origin = request.headers.get('Origin', '')
+        allow_origin = '*'
+        if origin:
+            from urllib.parse import urlparse
+            host = (urlparse(origin).hostname or '')
+            if host == 'alicexie.com' or host.endswith('.alicexie.com'):
+                # 反射官网/子域 Origin，允许携带 member_token Cookie
+                allow_origin = origin
+                resp.headers['Access-Control-Allow-Credentials'] = 'true'
+                resp.headers['Vary'] = 'Origin'
+        resp.headers['Access-Control-Allow-Origin'] = allow_origin
         resp.headers['Access-Control-Allow-Methods'] = 'GET, POST, OPTIONS'
         resp.headers['Access-Control-Allow-Headers'] = 'Content-Type'
     return resp
+
+
+def _get_member_payload():
+    """从 member_token Cookie 解析会员 payload（member_id/nickname），未登录返回 None"""
+    token = request.cookies.get('member_token')
+    if not token:
+        return None
+    secret = os.environ.get('JWT_SECRET_KEY', 'alice-jwt-secret-change-in-production')
+    try:
+        return jwt.decode(token, secret, algorithms=['HS256'])
+    except Exception:
+        return None
+
+
+def _get_member_id():
+    """从 member_token Cookie 解析会员 ID，未登录/无效返回 None"""
+    payload = _get_member_payload()
+    return payload.get('member_id') if payload else None
+
+
+@main_bp.route('/member/orders')
+def member_orders():
+    """会员中心：查自己（登录会员）下的官网订单"""
+    payload = _get_member_payload()
+    if not payload or not payload.get('member_id'):
+        return redirect('https://custom.alicexie.com/alipay/login?next=https://stock.alicexie.com/member/orders')
+    member_id = payload['member_id']
+    nickname = payload.get('nickname')
+    all_orders = CustomerOrder.query.filter_by(member_id=member_id).all()
+    status_counts = {}
+    for o in all_orders:
+        status_counts[o.status] = status_counts.get(o.status, 0) + 1
+
+    status = (request.args.get('status') or '').strip()
+    query = CustomerOrder.query.filter_by(member_id=member_id)
+    if status in ('pending_payment', 'paid', 'shipped', 'completed', 'cancelled'):
+        query = query.filter_by(status=status)
+    orders = query.order_by(CustomerOrder.created_at.desc()).all()
+
+    return render_template('member/orders.html', orders=orders,
+                           nickname=nickname, member_id=member_id,
+                           status_counts=status_counts, current_status=status)
+
+
+@main_bp.route('/member/orders/<int:order_id>')
+def member_order_detail(order_id):
+    """会员中心：订单详情"""
+    member_id = _get_member_id()
+    order = CustomerOrder.query.get_or_404(order_id)
+    if not member_id or order.member_id != member_id:
+        return render_template('member/no_permission.html'), 403
+    items = []
+    try:
+        items = json.loads(order.items) if order.items else []
+    except (json.JSONDecodeError, TypeError):
+        items = []
+    return render_template('member/order_detail.html', order=order, items=items)
+
+
+@main_bp.route('/api/public/member-orders')
+def public_member_orders():
+    """会员订单 JSON API（官网前端调用，依赖 member_token Cookie）"""
+    member_id = _get_member_id()
+    if not member_id:
+        return jsonify({'error': '未登录'}), 401
+    orders = CustomerOrder.query.filter_by(member_id=member_id) \
+        .order_by(CustomerOrder.created_at.desc()).all()
+    data = [{
+        'order_no': o.order_no,
+        'status': o.status,
+        'status_display': o.status_display,
+        'total_amount': o.total_amount,
+        'currency': o.currency,
+        'created_at': o.created_at.strftime('%Y-%m-%d %H:%M') if o.created_at else '',
+    } for o in orders]
+    return jsonify({'orders': data})
+
+
+@main_bp.route('/api/public/member/me')
+def public_member_me():
+    """当前登录会员信息（官网前端显示登录态 / 你好 XX）"""
+    token = request.cookies.get('member_token')
+    if not token:
+        return jsonify({'logged_in': False})
+    secret = os.environ.get('JWT_SECRET_KEY', 'alice-jwt-secret-change-in-production')
+    try:
+        payload = jwt.decode(token, secret, algorithms=['HS256'])
+        return jsonify({'logged_in': True, 'member_id': payload.get('member_id'),
+                        'nickname': payload.get('nickname')})
+    except Exception:
+        return jsonify({'logged_in': False})
 
 
 @main_bp.route('/api/public/orders', methods=['POST', 'OPTIONS'])
@@ -1771,6 +1876,7 @@ def public_create_order():
         total_amount=round(total, 2),
         currency=(data.get('currency') or 'CNY').strip(),
         status='pending_payment',
+        member_id=_get_member_id(),
         remark=(data.get('remark') or '').strip() or None,
     )
     db.session.add(order)
@@ -2023,6 +2129,50 @@ def alipay_notify():
         order.updated_at = datetime.now()
         db.session.commit()
     return 'success'
+
+
+@main_bp.route('/api/public/contact', methods=['POST', 'OPTIONS'])
+def public_contact():
+    """官网联系表单 — 访客留言，SMTP 发到商家邮箱"""
+    if request.method == 'OPTIONS':
+        return ('', 204)
+    data = request.get_json(silent=True) or {}
+    name = (data.get('name') or '').strip()
+    contact = (data.get('contact') or '').strip()
+    message = (data.get('message') or '').strip()
+    if not name or not contact or not message:
+        return jsonify({'ok': False, 'msg': '请填写完整信息'}), 400
+    if len(name) > 100 or len(contact) > 200 or len(message) > 5000:
+        return jsonify({'ok': False, 'msg': '内容过长，请精简'}), 400
+
+    smtp_host = current_app.config.get('SMTP_HOST')
+    smtp_port = current_app.config.get('SMTP_PORT', 465)
+    smtp_user = current_app.config.get('SMTP_USER')
+    smtp_pass = current_app.config.get('SMTP_PASS')
+    to_addr = current_app.config.get('CONTACT_TO') or smtp_user
+    if not smtp_host or not smtp_user or not smtp_pass:
+        current_app.logger.error('联系表单：SMTP 未配置')
+        return jsonify({'ok': False, 'msg': '发送服务未配置，请稍后重试'}), 500
+
+    body = f'【官网留言】\n\n姓名：{name}\n联系方式：{contact}\n\n留言内容：\n{message}'
+    msg = MIMEText(body, 'plain', 'utf-8')
+    msg['Subject'] = Header(f'【官网留言】{name}', 'utf-8')
+    msg['From'] = smtp_user
+    msg['To'] = to_addr
+
+    try:
+        if smtp_port == 465:
+            server = smtplib.SMTP_SSL(smtp_host, smtp_port, timeout=20)
+        else:
+            server = smtplib.SMTP(smtp_host, smtp_port, timeout=20)
+            server.starttls()
+        server.login(smtp_user, smtp_pass)
+        server.sendmail(smtp_user, [to_addr], msg.as_string())
+        server.quit()
+        return jsonify({'ok': True})
+    except Exception as e:
+        current_app.logger.error(f'联系表单发信失败: {e}')
+        return jsonify({'ok': False, 'msg': '发送失败，请稍后重试'}), 500
 
 
 def _get_item(target_type, target_id):

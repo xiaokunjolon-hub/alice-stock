@@ -39,3 +39,10 @@ class Config:
     ALIPAY_PUBLIC_KEY = os.environ.get('ALIPAY_PUBLIC_KEY')    # 支付宝公钥（base64, SPKI DER）
     ALIPAY_GATEWAY = os.environ.get('ALIPAY_GATEWAY', 'https://openapi.alipay.com/gateway.do')
 
+    # 联系表单发信（QQ 邮箱 SMTP）
+    SMTP_HOST = os.environ.get('SMTP_HOST', 'smtp.qq.com')
+    SMTP_PORT = int(os.environ.get('SMTP_PORT', '465'))
+    SMTP_USER = os.environ.get('SMTP_USER')
+    SMTP_PASS = os.environ.get('SMTP_PASS')
+    CONTACT_TO = os.environ.get('CONTACT_TO')  # 留言收件邮箱（默认=发信邮箱）
+

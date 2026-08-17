@@ -387,6 +387,7 @@ class CustomerOrder(db.Model):
 
     status = db.Column(db.String(30), nullable=False, default='pending_payment')  # pending_payment/paid/shipped/completed/cancelled
     payment_method = db.Column(db.String(30), nullable=True)  # stripe/wechat/alipay
+    member_id = db.Column(db.Integer, nullable=True)  # 关联 custom 系统 members.id（登录会员下单时记录）
     remark = db.Column(db.Text, nullable=True)
 
     created_at = db.Column(db.DateTime, default=datetime.now, nullable=False)
