@@ -1924,9 +1924,13 @@ def public_member_me():
 
 @main_bp.route('/api/public/orders', methods=['POST', 'OPTIONS'])
 def public_create_order():
-    """公开下单接口 — 官网顾客提交订单（无需登录，创建待付款订单）"""
+    """公开下单接口 — 官网顾客提交订单（需登录，订单归属当前会员）"""
     if request.method == 'OPTIONS':
         return ('', 204)
+
+    member_id = _get_member_id()
+    if not member_id:
+        return jsonify({'error': '请先登录'}), 401
 
     data = request.get_json(silent=True) or {}
     items = data.get('items') or []
@@ -1972,7 +1976,7 @@ def public_create_order():
         total_amount=round(total, 2),
         currency=(data.get('currency') or 'CNY').strip(),
         status='pending_payment',
-        member_id=_get_member_id(),
+        member_id=member_id,
         remark=(data.get('remark') or '').strip() or None,
     )
     db.session.add(order)
