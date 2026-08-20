@@ -1853,6 +1853,9 @@ def member_orders():
         return redirect('https://custom.alicexie.com/alipay/login?next=https://stock.alicexie.com/member/orders')
     member_id = payload['member_id']
     nickname = payload.get('nickname')
+    # 登录来源展示（旧 token 无 login_method 时显示中性文案）
+    login_label = {'alipay': '支付宝快捷登录', 'sms': '手机号快捷登录'}.get(
+        payload.get('login_method'), '会员快捷登录')
     all_orders = CustomerOrder.query.filter_by(member_id=member_id).all()
     status_counts = {}
     for o in all_orders:
@@ -1866,6 +1869,7 @@ def member_orders():
 
     return render_template('member/orders.html', orders=orders,
                            nickname=nickname, member_id=member_id,
+                           login_label=login_label,
                            status_counts=status_counts, current_status=status)
 
 
