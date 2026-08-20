@@ -1,5 +1,5 @@
 import os
-from flask import Flask, request
+from flask import Flask, request, render_template
 from flask_login import current_user, logout_user, login_user
 from config import Config
 from app.extensions import db, login_manager
@@ -109,5 +109,15 @@ def create_app(config_class=Config):
             return colors.get(status, 'badge-gray')
 
         return dict(status_badge=status_badge)
+
+    # ── 全局错误处理：任何未捕获异常都显示友好页面，不裸抛 500 ──
+    @app.errorhandler(500)
+    def handle_500(e):
+        app.logger.error(f'未捕获异常: {e}', exc_info=True)
+        return render_template('error.html', code=500, message='系统开小差了，请稍后重试或联系管理员'), 500
+
+    @app.errorhandler(404)
+    def handle_404(e):
+        return render_template('error.html', code=404, message='页面不存在或已被移除'), 404
 
     return app

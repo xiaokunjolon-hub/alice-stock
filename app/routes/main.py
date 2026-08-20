@@ -335,7 +335,10 @@ def raw_create():
 def raw_detail(id):
     material = RawMaterial.query.get_or_404(id)
     _hide_cost_for_staff(material)
-    photos = json.loads(material.photos) if material.photos else []
+    try:
+        photos = json.loads(material.photos) if material.photos else []
+    except (json.JSONDecodeError, TypeError):
+        photos = []
     return render_template('raw/detail.html', material=material, photos=photos)
 
 
@@ -533,7 +536,10 @@ def semi_detail(id):
     item = SemiFinished.query.get_or_404(id)
     if not current_user.is_admin:
         item.cost_summary = None
-    photos = json.loads(item.photos) if item.photos else []
+    try:
+        photos = json.loads(item.photos) if item.photos else []
+    except (json.JSONDecodeError, TypeError):
+        photos = []
     return render_template('semi/detail.html', item=item, photos=photos)
 
 
@@ -719,7 +725,10 @@ def finished_detail(id):
     if not current_user.is_admin:
         product.total_cost = None
         product.sale_price = None
-    photos = json.loads(product.photos) if product.photos else []
+    try:
+        photos = json.loads(product.photos) if product.photos else []
+    except (json.JSONDecodeError, TypeError):
+        photos = []
     return render_template('finished/detail.html', product=product, photos=photos)
 
 
@@ -1209,18 +1218,20 @@ def raw_import_confirm():
 
     count = 0
     for row in data:
+        weight, _ = _parse_float(row, 'weight', '重量')
+        cost_price, _ = _parse_float(row, 'cost_price', '采购价')
+        purchase_date, _ = _parse_date(row, 'purchase_date', '采购日期')
         material = RawMaterial(
             code=row.get('code'), category=row.get('category', 'stone'),
             name=row['name'], spec=row.get('spec'),
-            weight=float(row['weight']) if row.get('weight') else None,
+            weight=weight,
             unit=row.get('unit', 'ct'),
             shape=row.get('shape'), color=row.get('color'),
             clarity=row.get('clarity'),
             cert_number=row.get('cert_number'), cert_org=row.get('cert_org'),
             purity=row.get('purity'),
-            cost_price=float(row['cost_price']) if row.get('cost_price') else None,
-            purchase_date=datetime.strptime(row['purchase_date'], '%Y-%m-%d').date()
-            if row.get('purchase_date') else None,
+            cost_price=cost_price,
+            purchase_date=purchase_date,
             location=row.get('location'), lot_number=row.get('lot_number'),
             notes=row.get('notes'), created_by=current_user.username,
         )
@@ -1284,6 +1295,8 @@ def semi_import_confirm():
 
     count = 0
     for row in data:
+        est_date, _ = _parse_date(row, 'estimated_complete_date', '预计完成日期')
+        cost_summary, _ = _parse_float(row, 'cost_summary', '成本汇总')
         item = SemiFinished(
             code=row.get('code'), name=row['name'],
             type=row.get('type', 'wax_model'),
@@ -1291,10 +1304,8 @@ def semi_import_confirm():
             craftsman=row.get('craftsman'),
             current_location=row.get('current_location'),
             materials_snapshot=row.get('materials_snapshot'),
-            estimated_complete_date=datetime.strptime(
-                row['estimated_complete_date'], '%Y-%m-%d').date()
-            if row.get('estimated_complete_date') else None,
-            cost_summary=float(row['cost_summary']) if row.get('cost_summary') else None,
+            estimated_complete_date=est_date,
+            cost_summary=cost_summary,
             status=row.get('status', 'in_progress'),
             notes=row.get('notes'), created_by=current_user.username,
         )
@@ -1351,14 +1362,18 @@ def finished_import_confirm():
 
     count = 0
     for row in data:
+        gold_weight, _ = _parse_float(row, 'gold_weight', '金重')
+        stone_weight, _ = _parse_float(row, 'stone_weight', '石重')
+        total_cost, _ = _parse_float(row, 'total_cost', '总成本')
+        sale_price, _ = _parse_float(row, 'sale_price', '售价')
         product = FinishedProduct(
             product_code=row.get('product_code'), name=row['name'],
             type=row.get('type'), material_desc=row.get('material_desc'),
-            gold_weight=float(row['gold_weight']) if row.get('gold_weight') else None,
-            stone_weight=float(row['stone_weight']) if row.get('stone_weight') else None,
+            gold_weight=gold_weight,
+            stone_weight=stone_weight,
             main_stone=row.get('main_stone'), side_stones=row.get('side_stones'),
-            total_cost=float(row['total_cost']) if row.get('total_cost') else None,
-            sale_price=float(row['sale_price']) if row.get('sale_price') else None,
+            total_cost=total_cost,
+            sale_price=sale_price,
             location=row.get('location'), status=row.get('status', 'in_stock'),
             workflow_order_id=row.get('workflow_order_id'),
             notes=row.get('notes'), created_by=current_user.username,
@@ -1912,6 +1927,8 @@ def public_create_order():
     data = request.get_json(silent=True) or {}
     items = data.get('items') or []
     customer_name = (data.get('customer_name') or '').strip()
+    if not isinstance(items, list):
+        return jsonify({'error': '订单商品格式不正确'}), 400
     if not items:
         return jsonify({'error': '订单没有商品'}), 400
     if not customer_name:
@@ -1920,6 +1937,8 @@ def public_create_order():
     total = 0.0
     cleaned = []
     for it in items:
+        if not isinstance(it, dict):
+            continue
         try:
             pid = int(it.get('product_id'))
             qty = int(it.get('qty', 1))
@@ -2336,7 +2355,16 @@ def transaction_create():
     if request.method == 'POST':
         trans_type = request.form.get('type', 'in')
         target_type = request.form.get('target_type', 'raw')
-        target_id = int(request.form.get('target_id', 0))
+        target_id, target_err = _parse_int(request.form, 'target_id', '物料ID')
+        weight, weight_err = _parse_float(request.form, 'weight', '重量')
+        cost_recorded, cost_err = _parse_float(request.form, 'cost_recorded', '操作时成本')
+
+        errors = [e for e in (target_err, weight_err, cost_err) if e]
+        if errors:
+            for e in errors:
+                flash(e, 'warning')
+            return render_template('transactions/form.html', prefilled=prefilled)
+        target_id = target_id or 0
 
         item = _get_item(target_type, target_id)
         if not item:
@@ -2345,7 +2373,7 @@ def transaction_create():
 
         # 获取物料名称
         target_name = item.name
-        weight = getattr(item, 'weight', None) or getattr(item, 'gold_weight', None)
+        item_weight = getattr(item, 'weight', None) or getattr(item, 'gold_weight', None)
 
         trans = Transaction(
             type=trans_type,
@@ -2353,11 +2381,11 @@ def transaction_create():
             target_id=target_id,
             target_name=target_name,
             quantity=1,
-            weight=float(request.form.get('weight')) if request.form.get('weight') else weight,
+            weight=weight or item_weight,
             from_location=getattr(item, 'location', None) or getattr(item, 'current_location', None),
             to_location=request.form.get('to_location', '').strip() or None,
             related_order_id=request.form.get('related_order_id', '').strip() or None,
-            cost_recorded=float(request.form.get('cost_recorded')) if request.form.get('cost_recorded') else None,
+            cost_recorded=cost_recorded,
             operator=current_user.username,
             reason=request.form.get('reason', '').strip() or None,
         )
@@ -2560,11 +2588,21 @@ def _order_item_summary(order):
         items = []
     if not items:
         return '—'
-    total_qty = sum(int(it.get('qty', 1)) for it in items if isinstance(it, dict))
+    total_qty = 0
+    for it in items:
+        if isinstance(it, dict):
+            try:
+                total_qty += int(it.get('qty', 1))
+            except (TypeError, ValueError):
+                total_qty += 1
     first = items[0] if isinstance(items[0], dict) else {}
     first_name = first.get('name', '') or '商品'
+    try:
+        first_qty = int(first.get('qty', 1))
+    except (TypeError, ValueError):
+        first_qty = 1
     if len(items) == 1:
-        return f'{first_name} ×{int(first.get("qty", 1))}'
+        return f'{first_name} ×{first_qty}'
     return f'{first_name} 等 {total_qty} 件'
 
 
