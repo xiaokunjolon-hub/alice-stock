@@ -37,6 +37,39 @@ def allowed_file(filename):
 
 # ── 通用辅助 ──────────────────────────────────────────────
 
+def _parse_float(form, field, label):
+    """安全解析浮点字段。返回 (value, error)；空值返回 (None, None)"""
+    raw = (form.get(field) or '').strip()
+    if not raw:
+        return None, None
+    try:
+        return float(raw), None
+    except (TypeError, ValueError):
+        return None, f'{label}格式不正确，请输入数字（如 1.02）'
+
+
+def _parse_date(form, field, label):
+    """安全解析日期字段（YYYY-MM-DD）。返回 (value, error)；空值返回 (None, None)"""
+    raw = (form.get(field) or '').strip()
+    if not raw:
+        return None, None
+    try:
+        return datetime.strptime(raw, '%Y-%m-%d').date(), None
+    except (TypeError, ValueError):
+        return None, f'{label}格式不正确，请选择有效日期'
+
+
+def _parse_int(form, field, label):
+    """安全解析整数字段。返回 (value, error)；空值返回 (None, None)"""
+    raw = (form.get(field) or '').strip()
+    if not raw:
+        return None, None
+    try:
+        return int(raw), None
+    except (TypeError, ValueError):
+        return None, f'{label}格式不正确，请输入整数'
+
+
 def _hide_cost_for_staff(items):
     """普通店员看不到成本字段"""
     if current_user.is_admin:
@@ -247,6 +280,11 @@ def raw_create():
     if request.method == 'POST':
         photos_json = _save_photos(request.files.getlist('photos'))
 
+        weight, weight_err = _parse_float(request.form, 'weight', '重量')
+        cost_price, cost_err = _parse_float(request.form, 'cost_price', '采购价')
+        purchase_date, date_err = _parse_date(request.form, 'purchase_date', '采购日期')
+        supplier_id, supplier_err = _parse_int(request.form, 'supplier_id', '供应商')
+
         material = RawMaterial(
             code=request.form.get('code', '').strip() or None,
             category=request.form.get('category', 'stone'),
@@ -254,7 +292,7 @@ def raw_create():
             name_en=request.form.get('name_en', '').strip() or None,
             spec=request.form.get('spec', '').strip() or None,
 
-            weight=float(request.form.get('weight')) if request.form.get('weight') else None,
+            weight=weight,
             unit=request.form.get('unit', 'ct'),
 
             shape=request.form.get('shape', '').strip() or None,
@@ -265,11 +303,10 @@ def raw_create():
 
             purity=request.form.get('purity', '').strip() or None,
 
-            cost_price=float(request.form.get('cost_price')) if request.form.get('cost_price') else None,
-            purchase_date=datetime.strptime(request.form.get('purchase_date'), '%Y-%m-%d').date()
-            if request.form.get('purchase_date') else None,
+            cost_price=cost_price,
+            purchase_date=purchase_date,
 
-            supplier_id=int(request.form.get('supplier_id')) if request.form.get('supplier_id') else None,
+            supplier_id=supplier_id,
             location=request.form.get('location', '').strip() or None,
             lot_number=request.form.get('lot_number', '').strip() or None,
             photos=photos_json if photos_json != '[]' else None,
@@ -277,8 +314,12 @@ def raw_create():
             created_by=current_user.username,
         )
 
+        errors = [e for e in (weight_err, cost_err, date_err, supplier_err) if e]
         if not material.name:
-            flash('物料名称不能为空', 'warning')
+            errors.insert(0, '物料名称不能为空')
+        if errors:
+            for e in errors:
+                flash(e, 'warning')
             return render_template('raw/form.html', material=material, suppliers=suppliers)
 
         db.session.add(material)
@@ -305,13 +346,18 @@ def raw_edit(id):
     suppliers = Supplier.query.filter_by(is_active=True).order_by(Supplier.name).all()
 
     if request.method == 'POST':
+        weight, weight_err = _parse_float(request.form, 'weight', '重量')
+        cost_price, cost_err = _parse_float(request.form, 'cost_price', '采购价')
+        purchase_date, date_err = _parse_date(request.form, 'purchase_date', '采购日期')
+        supplier_id, supplier_err = _parse_int(request.form, 'supplier_id', '供应商')
+
         material.code = request.form.get('code', '').strip() or None
         material.category = request.form.get('category', 'stone')
         material.name = request.form.get('name', '').strip()
         material.name_en = request.form.get('name_en', '').strip() or None
         material.spec = request.form.get('spec', '').strip() or None
 
-        material.weight = float(request.form.get('weight')) if request.form.get('weight') else None
+        material.weight = weight
         material.unit = request.form.get('unit', 'ct')
 
         material.shape = request.form.get('shape', '').strip() or None
@@ -322,12 +368,10 @@ def raw_edit(id):
 
         material.purity = request.form.get('purity', '').strip() or None
 
-        if request.form.get('cost_price'):
-            material.cost_price = float(request.form.get('cost_price'))
-        material.purchase_date = datetime.strptime(request.form.get('purchase_date'), '%Y-%m-%d').date() \
-            if request.form.get('purchase_date') else None
+        material.cost_price = cost_price
+        material.purchase_date = purchase_date
 
-        material.supplier_id = int(request.form.get('supplier_id')) if request.form.get('supplier_id') else None
+        material.supplier_id = supplier_id
         material.location = request.form.get('location', '').strip() or None
         material.status = request.form.get('status', 'in_stock')
         material.lot_number = request.form.get('lot_number', '').strip() or None
@@ -340,8 +384,12 @@ def raw_edit(id):
 
         material.updated_at = datetime.now()
 
+        errors = [e for e in (weight_err, cost_err, date_err, supplier_err) if e]
         if not material.name:
-            flash('物料名称不能为空', 'warning')
+            errors.insert(0, '物料名称不能为空')
+        if errors:
+            for e in errors:
+                flash(e, 'warning')
             return render_template('raw/form.html', material=material, suppliers=suppliers)
 
         db.session.commit()
@@ -443,6 +491,9 @@ def semi_create():
     if request.method == 'POST':
         photos_json = _save_photos(request.files.getlist('photos'))
 
+        est_date, est_date_err = _parse_date(request.form, 'estimated_complete_date', '预计完成日期')
+        cost_summary, cost_err = _parse_float(request.form, 'cost_summary', '成本汇总')
+
         item = SemiFinished(
             code=request.form.get('code', '').strip() or None,
             name=request.form.get('name', '').strip(),
@@ -452,18 +503,20 @@ def semi_create():
             craftsman=request.form.get('craftsman', '').strip() or None,
             current_location=request.form.get('current_location', '').strip() or None,
             materials_snapshot=request.form.get('materials_snapshot', '').strip() or None,
-            estimated_complete_date=datetime.strptime(
-                request.form.get('estimated_complete_date'), '%Y-%m-%d').date()
-            if request.form.get('estimated_complete_date') else None,
-            cost_summary=float(request.form.get('cost_summary')) if request.form.get('cost_summary') else None,
+            estimated_complete_date=est_date,
+            cost_summary=cost_summary,
             status=request.form.get('status', 'in_progress'),
             photos=photos_json if photos_json != '[]' else None,
             notes=request.form.get('notes', '').strip() or None,
             created_by=current_user.username,
         )
 
+        errors = [e for e in (est_date_err, cost_err) if e]
         if not item.name:
-            flash('半成品名称不能为空', 'warning')
+            errors.insert(0, '半成品名称不能为空')
+        if errors:
+            for e in errors:
+                flash(e, 'warning')
             return render_template('semi/form.html', item=item)
 
         db.session.add(item)
@@ -490,6 +543,9 @@ def semi_edit(id):
     item = SemiFinished.query.get_or_404(id)
 
     if request.method == 'POST':
+        est_date, est_date_err = _parse_date(request.form, 'estimated_complete_date', '预计完成日期')
+        cost_summary, cost_err = _parse_float(request.form, 'cost_summary', '成本汇总')
+
         item.code = request.form.get('code', '').strip() or None
         item.name = request.form.get('name', '').strip()
         item.name_en = request.form.get('name_en', '').strip() or None
@@ -498,11 +554,8 @@ def semi_edit(id):
         item.craftsman = request.form.get('craftsman', '').strip() or None
         item.current_location = request.form.get('current_location', '').strip() or None
         item.materials_snapshot = request.form.get('materials_snapshot', '').strip() or None
-        item.estimated_complete_date = datetime.strptime(
-            request.form.get('estimated_complete_date'), '%Y-%m-%d').date() \
-            if request.form.get('estimated_complete_date') else None
-        if request.form.get('cost_summary'):
-            item.cost_summary = float(request.form.get('cost_summary'))
+        item.estimated_complete_date = est_date
+        item.cost_summary = cost_summary
         item.status = request.form.get('status', 'in_progress')
         item.notes = request.form.get('notes', '').strip() or None
 
@@ -512,8 +565,12 @@ def semi_edit(id):
 
         item.updated_at = datetime.now()
 
+        errors = [e for e in (est_date_err, cost_err) if e]
         if not item.name:
-            flash('半成品名称不能为空', 'warning')
+            errors.insert(0, '半成品名称不能为空')
+        if errors:
+            for e in errors:
+                flash(e, 'warning')
             return render_template('semi/form.html', item=item)
 
         db.session.commit()
@@ -605,6 +662,11 @@ def finished_create():
     if request.method == 'POST':
         photos_json = _save_photos(request.files.getlist('photos'))
 
+        gold_weight, gold_err = _parse_float(request.form, 'gold_weight', '金重')
+        stone_weight, stone_err = _parse_float(request.form, 'stone_weight', '石重')
+        total_cost, cost_err = _parse_float(request.form, 'total_cost', '总成本')
+        sale_price, price_err = _parse_float(request.form, 'sale_price', '售价')
+
         product = FinishedProduct(
             product_code=request.form.get('product_code', '').strip() or None,
             name=request.form.get('name', '').strip(),
@@ -615,16 +677,16 @@ def finished_create():
             name_en=request.form.get('name_en', '').strip() or None,
             show_on_website=request.form.get('show_on_website') == 'on',
 
-            gold_weight=float(request.form.get('gold_weight')) if request.form.get('gold_weight') else None,
-            stone_weight=float(request.form.get('stone_weight')) if request.form.get('stone_weight') else None,
+            gold_weight=gold_weight,
+            stone_weight=stone_weight,
 
             main_stone=request.form.get('main_stone', '').strip() or None,
             main_stone_en=request.form.get('main_stone_en', '').strip() or None,
             side_stones=request.form.get('side_stones', '').strip() or None,
             side_stones_en=request.form.get('side_stones_en', '').strip() or None,
 
-            total_cost=float(request.form.get('total_cost')) if request.form.get('total_cost') else None,
-            sale_price=float(request.form.get('sale_price')) if request.form.get('sale_price') else None,
+            total_cost=total_cost,
+            sale_price=sale_price,
 
             location=request.form.get('location', '').strip() or None,
             status=request.form.get('status', 'in_stock'),
@@ -634,8 +696,12 @@ def finished_create():
             created_by=current_user.username,
         )
 
+        errors = [e for e in (gold_err, stone_err, cost_err, price_err) if e]
         if not product.name:
-            flash('成品名称不能为空', 'warning')
+            errors.insert(0, '成品名称不能为空')
+        if errors:
+            for e in errors:
+                flash(e, 'warning')
             return render_template('finished/form.html', product=product)
 
         db.session.add(product)
@@ -676,6 +742,11 @@ def finished_edit(id):
     product = FinishedProduct.query.get_or_404(id)
 
     if request.method == 'POST':
+        gold_weight, gold_err = _parse_float(request.form, 'gold_weight', '金重')
+        stone_weight, stone_err = _parse_float(request.form, 'stone_weight', '石重')
+        total_cost, cost_err = _parse_float(request.form, 'total_cost', '总成本')
+        sale_price, price_err = _parse_float(request.form, 'sale_price', '售价')
+
         product.product_code = request.form.get('product_code', '').strip() or None
         product.name = request.form.get('name', '').strip()
         product.type = request.form.get('type', '').strip() or None
@@ -685,18 +756,16 @@ def finished_edit(id):
         product.name_en = request.form.get('name_en', '').strip() or None
         product.show_on_website = request.form.get('show_on_website') == 'on'
 
-        product.gold_weight = float(request.form.get('gold_weight')) if request.form.get('gold_weight') else None
-        product.stone_weight = float(request.form.get('stone_weight')) if request.form.get('stone_weight') else None
+        product.gold_weight = gold_weight
+        product.stone_weight = stone_weight
 
         product.main_stone = request.form.get('main_stone', '').strip() or None
         product.main_stone_en = request.form.get('main_stone_en', '').strip() or None
         product.side_stones = request.form.get('side_stones', '').strip() or None
         product.side_stones_en = request.form.get('side_stones_en', '').strip() or None
 
-        if request.form.get('total_cost'):
-            product.total_cost = float(request.form.get('total_cost'))
-        if request.form.get('sale_price'):
-            product.sale_price = float(request.form.get('sale_price'))
+        product.total_cost = total_cost
+        product.sale_price = sale_price
 
         product.location = request.form.get('location', '').strip() or None
         product.status = request.form.get('status', 'in_stock')
@@ -709,8 +778,12 @@ def finished_edit(id):
 
         product.updated_at = datetime.now()
 
+        errors = [e for e in (gold_err, stone_err, cost_err, price_err) if e]
         if not product.name:
-            flash('成品名称不能为空', 'warning')
+            errors.insert(0, '成品名称不能为空')
+        if errors:
+            for e in errors:
+                flash(e, 'warning')
             photos = json.loads(product.photos) if product.photos else []
             return render_template('finished/form.html', product=product, photos=photos)
 
