@@ -2,6 +2,8 @@
 {% block title %}流水详情{% endblock %}
 {% block content %}
 
+<a href="{{ url_for('main.transaction_list') }}" onclick="var p=sessionStorage.getItem('alice_prev');if(p&&new window.URL(p).pathname!==location.pathname){history.back();}else{location.href=this.getAttribute('href');}return false;" style="display:inline-block;padding:5px 14px;background:#fff;border:1px solid #b8973e;border-radius:4px;color:#b8973e;text-decoration:none;font-size:0.85rem;line-height:1.4;margin-bottom:12px;">← 返回</a>
+
 <h2 style="color:#b8973e;margin-bottom:20px;">📋 流水记录详情</h2>
 
 <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
@@ -46,8 +48,5 @@
     </div>
 </div>
 
-<div style="margin-top:20px;">
-    <a href="{{ url_for('main.transaction_list') }}" style="color:#999;text-decoration:none;">← 返回流水列表</a>
-</div>
 
 {% endblock %}

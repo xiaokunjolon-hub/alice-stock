@@ -1,9 +1,11 @@
 {% extends "base.html" %}
-{% block title %}大系统订单{% endblock %}
+{% block title %}大系统定制订单{% endblock %}
 {% block content %}
 
+<a href="{{ url_for('main.dashboard') }}" onclick="var p=sessionStorage.getItem('alice_prev');if(p&&new window.URL(p).pathname!==location.pathname){history.back();}else{location.href=this.getAttribute('href');}return false;" style="display:inline-block;padding:5px 14px;background:#fff;border:1px solid #b8973e;border-radius:4px;color:#b8973e;text-decoration:none;font-size:0.85rem;line-height:1.4;margin-bottom:12px;">← 返回</a>
+
 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
-    <h2 style="color:#b8973e;margin:0;">📋 大系统订单</h2>
+    <h2 style="color:#b8973e;margin:0;">📋 大系统定制订单</h2>
     <span style="color:#888;font-size:0.8rem;">只读浏览 · 来源: 流程管理系统</span>
 </div>
 
@@ -86,7 +88,7 @@
                 {% endif %}
             </td>
             <td>
-                <a href="{{ url_for('main.order_detail', order_id=o.get('id')) }}" style="color:#b8973e;text-decoration:none;">详情</a>
+                <a href="{{ url_for('main.order_detail', order_id=o.get('id')) }}" style="display:inline-block;padding:5px 14px;background:#fff;border:1px solid #b8973e;border-radius:4px;color:#b8973e;text-decoration:none;font-size:0.85rem;line-height:1.4;">详情</a>
             </td>
         </tr>
     {% endfor %}

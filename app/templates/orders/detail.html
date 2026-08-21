@@ -2,6 +2,8 @@
 {% block title %}订单详情{% endblock %}
 {% block content %}
 
+<a href="{{ url_for('main.order_list') }}" onclick="var p=sessionStorage.getItem('alice_prev');if(p&&new window.URL(p).pathname!==location.pathname){history.back();}else{location.href=this.getAttribute('href');}return false;" style="display:inline-block;padding:5px 14px;background:#fff;border:1px solid #b8973e;border-radius:4px;color:#b8973e;text-decoration:none;font-size:0.85rem;line-height:1.4;margin-bottom:12px;">← 返回订单列表</a>
+
 {% set s_map = {
     'draft': '草稿', 'pending_design': '待接单', 'designing': '设计中',
     'design_confirmed': '设计确认', 'pending_stone_measurement': '待丈量',
@@ -15,7 +17,9 @@
     <h2 style="color:#b8973e;margin:0;">
         📋 {{ order.get('title', '未命名') or '未命名' }}
     </h2>
-    <span style="color:#888;font-size:0.8rem;">订单号: {{ order.get('custom_order_no', '') or order.get('id', '') }}</span>
+    <span style="display:flex;align-items:center;gap:14px;">
+        <span style="color:#888;font-size:0.8rem;">订单号: {{ order.get('custom_order_no', '') or order.get('id', '') }}</span>
+    </span>
 </div>
 
 <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
@@ -63,10 +67,10 @@
         <div style="background:#fff;border:1px solid #e0e0e0;border-radius:8px;padding:20px;margin-bottom:20px;">
             <h3 style="color:#b8973e;margin-bottom:15px;">💎 订单石头 ({{ stones|length }})</h3>
             {% for stone in stones %}
-            <div style="background:#222;border-radius:6px;padding:12px;margin-bottom:8px;">
+            <div style="background:#fff;border:1px solid #e8e8e8;border-radius:6px;padding:12px;margin-bottom:8px;">
                 <div style="display:flex;justify-content:space-between;align-items:center;">
                     <span style="color:#b8973e;font-weight:600;">{{ stone.get('stone_name', '') or '未命名' }}</span>
-                    <span style="font-size:0.75rem;background:#333;padding:2px 8px;border-radius:4px;color:#999;">{{ stone.get('stone_role', '') == 'main' and '主石' or '配石' }}</span>
+                    <span style="font-size:0.75rem;background:#faf6ec;padding:2px 8px;border-radius:4px;color:#8a6d3b;">{{ stone.get('stone_role', '') == 'main' and '主石' or '配石' }}</span>
                 </div>
                 <div style="font-size:0.8rem;color:#888;margin-top:4px;">
                     {{ stone.get('stone_type', '') or '' }}
@@ -120,8 +124,6 @@
     {% endif %}
 </div>
 
-<div style="margin-top:20px;">
-    <a href="{{ url_for('main.order_list') }}" style="color:#999;text-decoration:none;">← 返回订单列表</a>
-</div>
+
 
 {% endblock %}

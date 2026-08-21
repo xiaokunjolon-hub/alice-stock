@@ -2,6 +2,8 @@
 {% block title %}半成品库存{% endblock %}
 {% block content %}
 
+<a href="{{ url_for('main.dashboard') }}" onclick="var p=sessionStorage.getItem('alice_prev');if(p&&new window.URL(p).pathname!==location.pathname){history.back();}else{location.href=this.getAttribute('href');}return false;" style="display:inline-block;padding:5px 14px;background:#fff;border:1px solid #b8973e;border-radius:4px;color:#b8973e;text-decoration:none;font-size:0.85rem;line-height:1.4;margin-bottom:12px;">← 返回</a>
+
 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:10px;">
     <h2 style="color:#b8973e;margin:0;">🔧 半成品库存</h2>
     <div style="display:flex;gap:8px;flex-wrap:wrap;">
@@ -74,9 +76,9 @@
             <td>{{ item.estimated_complete_date or '—' }}</td>
             <td><span class="{{ status_badge(item.status) }}">{{ item.status_display }}</span></td>
             <td>
-                <a href="{{ url_for('main.semi_detail', id=item.id) }}" style="color:#b8973e;text-decoration:none;margin-right:6px;">详情</a>
-                <a href="{{ url_for('main.semi_edit', id=item.id) }}" style="color:#555;text-decoration:none;margin-right:6px;">编辑</a>
-                <a href="{{ url_for('main.semi_copy', id=item.id) }}" style="color:#5b9bd5;text-decoration:none;font-size:0.85rem;">复制</a>
+                <a href="{{ url_for('main.semi_detail', id=item.id) }}" style="display:inline-block;padding:4px 12px;background:#fff;border:1px solid #b8973e;border-radius:4px;color:#b8973e;text-decoration:none;font-size:0.85rem;margin-right:6px;">详情</a>
+                <a href="{{ url_for('main.semi_edit', id=item.id) }}" style="display:inline-block;padding:4px 12px;background:#fff;border:1px solid #5b9bd5;border-radius:4px;color:#5b9bd5;text-decoration:none;font-size:0.85rem;margin-right:6px;">编辑</a>
+                <a href="{{ url_for('main.semi_copy', id=item.id) }}" style="display:inline-block;padding:4px 12px;background:#fff;border:1px solid #999;border-radius:4px;color:#999;text-decoration:none;font-size:0.85rem;margin-right:6px;">复制</a>
             </td>
         </tr>
     {% endfor %}

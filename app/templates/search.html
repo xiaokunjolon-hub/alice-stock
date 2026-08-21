@@ -2,6 +2,8 @@
 {% block title %}搜索 - {{ q }}{% endblock %}
 {% block content %}
 
+<a href="{{ url_for('main.dashboard') }}" onclick="var p=sessionStorage.getItem('alice_prev');if(p&&new window.URL(p).pathname!==location.pathname){history.back();}else{location.href=this.getAttribute('href');}return false;" style="display:inline-block;padding:5px 14px;background:#fff;border:1px solid #b8973e;border-radius:4px;color:#b8973e;text-decoration:none;font-size:0.85rem;line-height:1.4;margin-bottom:12px;">← 返回</a>
+
 <div style="margin-bottom:20px;">
     <form method="GET" action="{{ url_for('main.global_search') }}" style="display:flex;gap:10px;">
         <input type="text" name="q" value="{{ q }}" placeholder="全局搜索：编号/名称/证书号/位置/工匠/主石..."
@@ -23,7 +25,7 @@
     <div style="flex:1;min-width:280px;max-width:420px;background:#fff;border:1px solid #e0e0e0;border-radius:8px;padding:16px;">
         <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:8px;">
             <span style="font-size:0.7rem;background:{% if r.type == 'raw' %}#d4a85333{% elif r.type == 'semi' %}#5b9bd533{% else %}#6bc26b33{% endif %};color:{% if r.type == 'raw' %}#d4a853{% elif r.type == 'semi' %}#5b9bd5{% else %}#6bc26b{% endif %};padding:3px 8px;border-radius:4px;">
-                {{ {'raw': '🪨', 'semi': '🔧', 'finished': '💍'}.get(r.type, '') }} {{ r.type_label }}
+                {{ {'raw': '⛏️', 'semi': '🔧', 'finished': '💍'}.get(r.type, '') }} {{ r.type_label }}
             </span>
             <span class="{{ status_badge(r.status_class) }}" style="font-size:0.65rem;padding:2px 8px;border-radius:3px;">{{ r.status }}</span>
         </div>

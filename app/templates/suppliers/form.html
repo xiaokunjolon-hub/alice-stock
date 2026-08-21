@@ -2,6 +2,8 @@
 {% block title %}{{ '编辑' if supplier else '添加' }}供应商{% endblock %}
 {% block content %}
 
+<a href="{{ url_for('main.supplier_list') }}" onclick="var p=sessionStorage.getItem('alice_prev');if(p&&new window.URL(p).pathname!==location.pathname){history.back();}else{location.href=this.getAttribute('href');}return false;" style="display:inline-block;padding:5px 14px;background:#fff;border:1px solid #b8973e;border-radius:4px;color:#b8973e;text-decoration:none;font-size:0.85rem;line-height:1.4;margin-bottom:12px;">← 返回</a>
+
 <h2 style="color:#b8973e;margin-bottom:20px;">{{ '编辑' if supplier else '添加' }}供应商</h2>
 
 <form method="POST" style="max-width:600px;background:#f5f0e8;border:1px solid #e0e0e0;border-radius:8px;padding:30px;">
@@ -56,7 +58,7 @@
 
     <div style="display:flex;gap:10px;">
         <button type="submit" style="padding:10px 30px;background:#b8973e;color:#fff;border:none;border-radius:6px;font-weight:700;cursor:pointer;">保存</button>
-        <a href="{{ url_for('main.supplier_list') }}" style="padding:10px 20px;background:#333;color:#555;border-radius:6px;text-decoration:none;">取消</a>
+        <a href="{{ url_for('main.supplier_list') }}" style="padding:10px 20px;background:#fff;border:1px solid #b8973e;border-radius:6px;color:#b8973e;text-decoration:none;">取消</a>
     </div>
 </form>
 

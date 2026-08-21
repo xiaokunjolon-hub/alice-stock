@@ -2,6 +2,8 @@
 {% block title %}官网订单详情{% endblock %}
 {% block content %}
 
+<a href="{{ url_for('main.website_order_list') }}" onclick="var p=sessionStorage.getItem('alice_prev');if(p&&new window.URL(p).pathname!==location.pathname){history.back();}else{location.href=this.getAttribute('href');}return false;" style="display:inline-block;padding:5px 14px;background:#fff;border:1px solid #b8973e;border-radius:4px;color:#b8973e;text-decoration:none;font-size:0.85rem;line-height:1.4;margin-bottom:12px;">← 返回订单列表</a>
+
 {% set s_map = {
     'pending_payment': ('badge-yellow', '待付款'),
     'paid': ('badge-green', '已付款'),
@@ -14,7 +16,6 @@
 
 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
     <h2 style="color:#b8973e;margin:0;">🛍️ 订单详情</h2>
-    <a href="{{ url_for('main.website_order_list') }}" style="color:#b8973e;text-decoration:none;">← 返回订单列表</a>
 </div>
 
 <!-- 订单概要 -->

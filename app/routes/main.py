@@ -1640,7 +1640,7 @@ def ai_parse():
                 'response_format': {'type': 'json_object'},
                 'temperature': 0.1,
             },
-            timeout=60,
+            timeout=30,
         )
         resp.raise_for_status()
         data = resp.json()
@@ -1700,7 +1700,7 @@ def ai_translate():
                 'response_format': {'type': 'json_object'},
                 'temperature': 0.1,
             },
-            timeout=60,
+            timeout=30,
         )
         resp.raise_for_status()
         data = resp.json()

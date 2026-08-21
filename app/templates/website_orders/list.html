@@ -2,6 +2,8 @@
 {% block title %}官网订单{% endblock %}
 {% block content %}
 
+<a href="{{ url_for('main.dashboard') }}" onclick="var p=sessionStorage.getItem('alice_prev');if(p&&new window.URL(p).pathname!==location.pathname){history.back();}else{location.href=this.getAttribute('href');}return false;" style="display:inline-block;padding:5px 14px;background:#fff;border:1px solid #b8973e;border-radius:4px;color:#b8973e;text-decoration:none;font-size:0.85rem;line-height:1.4;margin-bottom:12px;">← 返回</a>
+
 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
     <h2 style="color:#b8973e;margin:0;">🛍️ 官网订单</h2>
     <span style="color:#888;font-size:0.8rem;">成品销售 · 顾客通过官网下单</span>
@@ -96,7 +98,7 @@
             <td><span class="{{ s_map.get(o.status, ('badge-gray',''))[0] }}" style="font-size:0.75rem;">{{ s_map.get(o.status, ('badge-gray', o.status))[1] }}</span></td>
             <td style="font-size:0.85rem;color:#888;white-space:nowrap;">{{ o.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
             <td>
-                <a href="{{ url_for('main.website_order_detail', order_id=o.id) }}" style="color:#b8973e;text-decoration:none;">详情</a>
+                <a href="{{ url_for('main.website_order_detail', order_id=o.id) }}" style="display:inline-block;padding:5px 14px;background:#fff;border:1px solid #b8973e;border-radius:4px;color:#b8973e;text-decoration:none;font-size:0.85rem;line-height:1.4;">详情</a>
             </td>
         </tr>
     {% endfor %}

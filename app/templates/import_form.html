@@ -2,6 +2,8 @@
 {% block title %}批量导入{{ target_label }}{% endblock %}
 {% block content %}
 
+<a href="{{ url_for('main.dashboard') }}" onclick="var p=sessionStorage.getItem('alice_prev');if(p&&new window.URL(p).pathname!==location.pathname){history.back();}else{location.href=this.getAttribute('href');}return false;" style="display:inline-block;padding:5px 14px;background:#fff;border:1px solid #b8973e;border-radius:4px;color:#b8973e;text-decoration:none;font-size:0.85rem;line-height:1.4;margin-bottom:12px;">← 返回</a>
+
 <h2 style="color:#b8973e;margin-bottom:5px;">📥 批量导入{{ target_label }}</h2>
 
 {% if not preview_rows %}
@@ -11,7 +13,7 @@
     <div style="background:#fff;border:1px solid #e0e0e0;border-radius:8px;padding:25px;margin-bottom:20px;">
         <h3 style="color:#b8973e;margin-bottom:15px;">第1步：下载模板</h3>
         <p style="color:#999;margin-bottom:12px;">下载 Excel 模板，按照模板格式填写数据。</p>
-        <a href="{{ template_url }}" style="display:inline-block;padding:10px 24px;background:#333;color:#555;border-radius:6px;text-decoration:none;font-weight:600;">
+        <a href="{{ template_url }}" style="display:inline-block;padding:10px 24px;background:#b8973e;color:#fff;border:none;border-radius:6px;text-decoration:none;font-weight:600;">
             ⬇ 下载{{ target_label }}导入模板
         </a>
     </div>
@@ -27,7 +29,7 @@
             <button type="submit" style="padding:12px 30px;background:#b8973e;color:#fff;border:none;border-radius:6px;font-weight:700;font-size:1rem;cursor:pointer;">
                 上传并预览
             </button>
-            <a href="{{ list_url }}" style="padding:12px 20px;background:#333;color:#555;border-radius:6px;text-decoration:none;margin-left:10px;">取消</a>
+            <a href="{{ list_url }}" style="padding:12px 20px;background:#fff;border:1px solid #b8973e;border-radius:6px;color:#b8973e;text-decoration:none;margin-left:10px;">取消</a>
         </form>
     </div>
 </div>
@@ -89,7 +91,7 @@
                 确认导入 {{ ok_count }} 条
             </button>
         </form>
-        <a href="{{ list_url }}" style="padding:12px 20px;background:#333;color:#555;border-radius:6px;text-decoration:none;">取消</a>
+        <a href="{{ list_url }}" style="padding:12px 20px;background:#fff;border:1px solid #b8973e;border-radius:6px;color:#b8973e;text-decoration:none;">取消</a>
     </div>
     {% endif %}
 

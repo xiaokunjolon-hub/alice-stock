@@ -2,6 +2,8 @@
 {% block title %}{{ '编辑' if material and material.id else '录入' }}原材料{% endblock %}
 {% block content %}
 
+<a href="{{ url_for('main.raw_list') }}" onclick="var p=sessionStorage.getItem('alice_prev');if(p&&new window.URL(p).pathname!==location.pathname){history.back();}else{location.href=this.getAttribute('href');}return false;" style="display:inline-block;padding:5px 14px;background:#fff;border:1px solid #b8973e;border-radius:4px;color:#b8973e;text-decoration:none;font-size:0.85rem;line-height:1.4;margin-bottom:12px;">← 返回</a>
+
 <h2 style="color:#b8973e;margin-bottom:5px;">{{ '编辑' if material and material.id else '录入' }}原材料</h2>
 {% if material and material.id %}<p style="color:#888;margin-bottom:20px;">编号: {{ material.code or '—' }}</p>{% endif %}
 
@@ -222,7 +224,7 @@
 
     <div style="display:flex;gap:10px;">
         <button type="submit" style="padding:10px 30px;background:#b8973e;color:#fff;border:none;border-radius:6px;font-weight:700;cursor:pointer;">保存</button>
-        <a href="{{ url_for('main.raw_list') }}" style="padding:10px 20px;background:#333;color:#555;border-radius:6px;text-decoration:none;">取消</a>
+        <a href="{{ url_for('main.raw_list') }}" style="padding:10px 20px;background:#fff;border:1px solid #b8973e;border-radius:6px;color:#b8973e;text-decoration:none;">取消</a>
     </div>
 </form>
 
@@ -287,5 +289,7 @@ function aiParse() {
     });
 }
 </script>
+
+<script src="{{ url_for('static', filename='js/photo-preview.js') }}"></script>
 
 {% endblock %}

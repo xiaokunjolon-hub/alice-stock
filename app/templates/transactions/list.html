@@ -2,6 +2,8 @@
 {% block title %}出入库流水{% endblock %}
 {% block content %}
 
+<a href="{{ url_for('main.dashboard') }}" onclick="var p=sessionStorage.getItem('alice_prev');if(p&&new window.URL(p).pathname!==location.pathname){history.back();}else{location.href=this.getAttribute('href');}return false;" style="display:inline-block;padding:5px 14px;background:#fff;border:1px solid #b8973e;border-radius:4px;color:#b8973e;text-decoration:none;font-size:0.85rem;line-height:1.4;margin-bottom:12px;">← 返回</a>
+
 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
     <h2 style="color:#b8973e;margin:0;">📋 出入库流水</h2>
     <a href="{{ url_for('main.transaction_create') }}" style="padding:10px 16px;background:#b8973e;color:#fff;border-radius:6px;text-decoration:none;font-weight:600;">+ 新增记录</a>

@@ -16,7 +16,7 @@
 <div class="dashboard-stats">
     <a href="{{ url_for('main.raw_list') }}" class="stat-card gold" style="text-decoration:none;">
         <div class="stat-num">{{ stats.raw_count }}</div>
-        <div class="stat-label">🪨 原材料</div>
+        <div class="stat-label">⛏️ 原材料</div>
     </a>
     <a href="{{ url_for('main.semi_list') }}" class="stat-card" style="text-decoration:none;border-color:#5b9bd5;">
         <div class="stat-num" style="color:#5b9bd5;">{{ stats.semi_count }}</div>
@@ -34,7 +34,7 @@
     <a href="{{ url_for('main.finished_create') }}">+ 录入成品</a>
     <a href="{{ url_for('main.supplier_list') }}" class="secondary">供应商管理</a>
     <a href="{{ url_for('main.transaction_list') }}" class="secondary">出入库流水</a>
-    <a href="{{ url_for('main.order_list') }}" class="secondary">大系统订单</a>
+    <a href="{{ url_for('main.order_list') }}" class="secondary">大系统定制订单</a>
     <a href="{{ url_for('main.website_order_list') }}" class="secondary">官网订单</a>
 </div>
 

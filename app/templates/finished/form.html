@@ -2,6 +2,8 @@
 {% block title %}{{ '编辑' if product and product.id else '录入' }}成品{% endblock %}
 {% block content %}
 
+<a href="{{ url_for('main.finished_list') }}" onclick="var p=sessionStorage.getItem('alice_prev');if(p&&new window.URL(p).pathname!==location.pathname){history.back();}else{location.href=this.getAttribute('href');}return false;" style="display:inline-block;padding:5px 14px;background:#fff;border:1px solid #b8973e;border-radius:4px;color:#b8973e;text-decoration:none;font-size:0.85rem;line-height:1.4;margin-bottom:12px;">← 返回</a>
+
 <h2 style="color:#b8973e;margin-bottom:20px;">{{ '编辑' if product and product.id else '录入' }}成品</h2>
 
 <div style="display:flex;gap:24px;align-items:flex-start;">
@@ -65,12 +67,23 @@
                        placeholder="英文版官网展示用">
             </div>
         </div>
-        <div style="margin-top:12px;">
-            <label style="color:#555;display:flex;align-items:center;gap:8px;cursor:pointer;">
-                <input type="checkbox" name="show_on_website" {% if not product or product.show_on_website %}checked{% endif %}
-                       style="width:16px;height:16px;accent-color:#b8973e;">
-                在官网展示（勾选后才会出现在官网）
+        <div style="margin-top:12px;display:flex;align-items:center;gap:12px;">
+            <style>
+                .alice-toggle { position:relative; display:inline-block; width:52px; height:28px; flex-shrink:0; cursor:pointer; }
+                .alice-toggle input { opacity:0; width:0; height:0; position:absolute; }
+                .alice-toggle .slider { position:absolute; inset:0; background:#cfcfcf; border-radius:999px; transition:background .2s ease; }
+                .alice-toggle .knob { position:absolute; top:3px; left:3px; width:22px; height:22px; background:#fff; border-radius:50%; transition:transform .2s ease; box-shadow:0 1px 3px rgba(0,0,0,.3); }
+                .alice-toggle input:checked + .slider { background:#b8973e; }
+                .alice-toggle input:checked + .slider + .knob { transform:translateX(24px); }
+                .alice-toggle input:focus-visible + .slider { outline:2px solid #b8973e; outline-offset:2px; }
+            </style>
+            <label class="alice-toggle" title="左右开关控制是否在官网展示">
+                <input type="checkbox" name="show_on_website" {% if not product or product.show_on_website %}checked{% endif %}>
+                <span class="slider"></span>
+                <span class="knob"></span>
             </label>
+            <span style="color:#555;">在官网展示</span>
+            <span id="showOnSiteStatus" style="color:#888;font-size:0.85rem;"></span>
         </div>
     </fieldset>
 
@@ -203,7 +216,7 @@
 
     <div style="display:flex;gap:10px;">
         <button type="submit" style="padding:10px 30px;background:#b8973e;color:#fff;border:none;border-radius:6px;font-weight:700;cursor:pointer;">保存</button>
-        <a href="{{ url_for('main.finished_list') }}" style="padding:10px 20px;background:#333;color:#555;border-radius:6px;text-decoration:none;">取消</a>
+        <a href="{{ url_for('main.finished_list') }}" style="padding:10px 20px;background:#fff;border:1px solid #b8973e;border-radius:6px;color:#b8973e;text-decoration:none;">取消</a>
     </div>
 </form>
 
@@ -244,10 +257,14 @@ function aiParse() {
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({text: text})
     }).then(function(r) {
-        return r.json().then(function(d) { return {ok: r.ok, data: d}; });
+        return r.text().then(function(t) {
+            var d = null;
+            try { d = JSON.parse(t); } catch (e) { d = null; }
+            return {ok: r.ok, data: d, status: r.status};
+        });
     }).then(function(res) {
-        if (!res.ok || !res.data.ok) {
-            status.textContent = (res.data && res.data.error) || '识别失败';
+        if (!res.data || !res.ok || !res.data.ok) {
+            status.textContent = (res.data && res.data.error) || ('服务器响应异常（HTTP ' + res.status + '），请重试');
             status.style.color = '#c44';
             return;
         }
@@ -288,10 +305,14 @@ function aiTranslate() {
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({fields: zhVals})
     }).then(function(r) {
-        return r.json().then(function(d) { return {ok: r.ok, data: d}; });
+        return r.text().then(function(t) {
+            var d = null;
+            try { d = JSON.parse(t); } catch (e) { d = null; }
+            return {ok: r.ok, data: d, status: r.status};
+        });
     }).then(function(res) {
-        if (!res.ok || !res.data.ok) {
-            status.textContent = (res.data && res.data.error) || '翻译失败';
+        if (!res.data || !res.ok || !res.data.ok) {
+            status.textContent = (res.data && res.data.error) || ('服务器响应异常（HTTP ' + res.status + '），请重试');
             status.style.color = '#c44';
             return;
         }
@@ -315,5 +336,22 @@ function aiTranslate() {
     });
 }
 </script>
+
+<script>
+// 在官网展示 开关状态提示
+(function () {
+    var sw = document.querySelector('input[name="show_on_website"]');
+    var tip = document.getElementById('showOnSiteStatus');
+    if (!sw || !tip) return;
+    function update() {
+        tip.textContent = sw.checked ? '将在官网展示' : '不在官网展示';
+        tip.style.color = sw.checked ? '#6bc26b' : '#c44';
+    }
+    sw.addEventListener('change', update);
+    update();
+})();
+</script>
+
+<script src="{{ url_for('static', filename='js/photo-preview.js') }}"></script>
 
 {% endblock %}
