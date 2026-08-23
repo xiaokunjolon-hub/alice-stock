@@ -6,10 +6,14 @@
 
 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
     <h2 style="color:#b8973e;margin:0;">
-        💍 {{ product.name }}
+        💍 <span id="pname" data-en="{{ product.name_en or '' }}">{{ product.name }}</span>
         <span class="{{ status_badge(product.status) }}" style="font-size:0.7rem;margin-left:10px;padding:4px 10px;border-radius:4px;">{{ product.status_display }}</span>
     </h2>
-    <div style="display:flex;gap:8px;">
+    <div style="display:flex;gap:8px;align-items:center;">
+        <div style="display:flex;border:1px solid #b8973e;border-radius:6px;overflow:hidden;">
+            <button id="lang-zh" onclick="setLang('zh')" style="padding:6px 14px;background:#b8973e;color:#fff;border:none;cursor:pointer;font-size:0.8rem;">中文</button>
+            <button id="lang-en" onclick="setLang('en')" style="padding:6px 14px;background:#fff;color:#b8973e;border:none;cursor:pointer;font-size:0.8rem;">English</button>
+        </div>
         <a href="{{ url_for('main.finished_copy', id=product.id) }}" style="padding:8px 16px;background:#5b9bd5;color:#fff;border-radius:6px;text-decoration:none;font-size:0.85rem;">复制新建</a>
         <a href="{{ url_for('main.finished_edit', id=product.id) }}" style="padding:8px 16px;background:#333;color:#555;border-radius:6px;text-decoration:none;font-size:0.85rem;">编辑</a>
         {% if current_user.is_admin %}
@@ -26,10 +30,10 @@
             <h3 style="color:#b8973e;margin-bottom:15px;">基本信息</h3>
             <table style="width:100%;color:#555;">
                 <tr><td style="color:#888;padding:4px 0;width:80px;">成品编号</td><td style="font-family:monospace;">{{ product.product_code or '—' }}</td></tr>
-                <tr><td style="color:#888;padding:4px 0;">名称</td><td><strong>{{ product.name }}</strong></td></tr>
+                <tr data-en="{{ product.name_en or '—' }}"><td style="color:#888;padding:4px 0;">名称</td><td><strong>{{ product.name }}</strong></td></tr>
                 <tr><td style="color:#888;padding:4px 0;">英文名</td><td>{{ product.name_en or '—' }}</td></tr>
                 <tr><td style="color:#888;padding:4px 0;">类型</td><td>{{ product.type_display }}</td></tr>
-                <tr><td style="color:#888;padding:4px 0;">材质</td><td>{{ product.material_desc or '—' }}</td></tr>
+                <tr data-en="{{ product.material_desc_en or '—' }}"><td style="color:#888;padding:4px 0;">材质</td><td>{{ product.material_desc or '—' }}</td></tr>
             </table>
         </div>
 
@@ -45,9 +49,9 @@
         <div style="background:#fff;border:1px solid #e0e0e0;border-radius:8px;padding:20px;margin-bottom:20px;">
             <h3 style="color:#b8973e;margin-bottom:15px;">宝石信息</h3>
             <table style="width:100%;color:#555;">
-                <tr><td style="color:#888;padding:4px 0;width:80px;">主石</td><td>{{ product.main_stone or '—' }}</td></tr>
+                <tr data-en="{{ product.main_stone_en or '—' }}"><td style="color:#888;padding:4px 0;width:80px;">主石</td><td>{{ product.main_stone or '—' }}</td></tr>
                 {% if product.side_stones %}
-                <tr><td style="color:#888;padding:4px 0;">配石</td><td style="white-space:pre-wrap;">{{ product.side_stones }}</td></tr>
+                <tr data-en="{{ product.side_stones_en or '—' }}"><td style="color:#888;padding:4px 0;">配石</td><td style="white-space:pre-wrap;">{{ product.side_stones }}</td></tr>
                 {% endif %}
             </table>
         </div>
@@ -144,5 +148,18 @@
     </p>
 </div>
 
+<script>
+/* 中英文版本切换查看（自动翻译结果可在此核对/发现错误后去编辑页修改） */
+function setLang(l) {
+    document.getElementById('lang-zh').style.background = l === 'zh' ? '#b8973e' : '#fff';
+    document.getElementById('lang-zh').style.color = l === 'zh' ? '#fff' : '#b8973e';
+    document.getElementById('lang-en').style.background = l === 'en' ? '#b8973e' : '#fff';
+    document.getElementById('lang-en').style.color = l === 'en' ? '#fff' : '#b8973e';
+    document.querySelectorAll('[data-en]').forEach(function (el) {
+        if (!el.dataset.zh) el.dataset.zh = el.innerHTML;
+        el.innerHTML = (l === 'en' && el.dataset.en) ? el.dataset.en : el.dataset.zh;
+    });
+}
+</script>
 
 {% endblock %}

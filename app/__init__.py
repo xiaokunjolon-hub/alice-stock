@@ -48,7 +48,7 @@ def create_app(config_class=Config):
         return stock_user
 
     # ── SSO 自动登录（custom 是唯一 JWT 签发者）──────
-    JWT_SECRET_KEY = os.environ.get('JWT_SECRET_KEY', 'alice-jwt-secret-change-in-production')
+    JWT_SECRET_KEY = os.environ.get('STAFF_JWT_SECRET', 'alice-jwt-secret-change-in-production')
     import jwt as _jwt
 
     @app.before_request

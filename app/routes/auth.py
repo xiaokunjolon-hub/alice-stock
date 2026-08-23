@@ -11,7 +11,7 @@ from app.models import StockUser
 
 auth_bp = Blueprint('auth', __name__)
 
-JWT_SECRET_KEY = os.environ.get('JWT_SECRET_KEY', 'alice-jwt-secret-change-in-production')
+JWT_SECRET_KEY = os.environ.get('STAFF_JWT_SECRET', 'alice-jwt-secret-change-in-production')
 
 
 def _decode_jwt():
@@ -64,6 +64,8 @@ def login():
             db.session.commit()
         if stock_user:
             login_user(stock_user)
+            from app.audit import log_action
+            log_action(stock_user.username, 'login', detail='SSO 自动登录')
             return redirect(url_for('main.dashboard'))
 
     # 没有 JWT → 跳转 custom 统一登录

@@ -712,6 +712,7 @@ def finished_create():
 
         db.session.add(product)
         db.session.commit()
+        _auto_translate_missing_en(product)
         flash(f'成品「{product.name}」已录入', 'success')
         return redirect(url_for('main.finished_list'))
 
@@ -797,6 +798,7 @@ def finished_edit(id):
             return render_template('finished/form.html', product=product, photos=photos)
 
         db.session.commit()
+        _auto_translate_missing_en(product)
         flash(f'成品「{product.name}」已更新', 'success')
         return redirect(url_for('main.finished_detail', id=product.id))
 
@@ -1657,19 +1659,18 @@ def ai_parse():
         return jsonify({'error': 'AI 返回格式异常，请重试'}), 502
 
 
-@main_bp.route('/api/ai/translate', methods=['POST'])
-@login_required
-def ai_translate():
-    """AI 把中文字段翻译成英文（珠宝专业翻译，录入辅助，不落库）"""
-    payload = request.get_json(silent=True) or {}
-    fields = payload.get('fields', {})
-    to_translate = {k: v.strip() for k, v in fields.items() if isinstance(v, str) and v.strip()}
-    if not to_translate:
-        return jsonify({'error': '没有要翻译的内容'}), 400
+class _AITranslateError(Exception):
+    """AI 翻译失败（消息 + HTTP 状态码）"""
+    def __init__(self, message, status=502):
+        self.message = message
+        self.status = status
 
+
+def _ai_translate_fields(fields):
+    """把中文字段翻译成英文（珠宝专业术语），返回 {key: 英文}。失败抛 _AITranslateError。"""
     api_key = current_app.config.get('DEEPSEEK_API_KEY')
     if not api_key:
-        return jsonify({'error': '未配置 DeepSeek API Key'}), 500
+        raise _AITranslateError('未配置 DeepSeek API Key', 500)
 
     base_url = current_app.config.get('DEEPSEEK_BASE_URL', 'https://api.deepseek.com').rstrip('/')
     model = current_app.config.get('DEEPSEEK_MODEL', 'deepseek-chat')
@@ -1681,9 +1682,8 @@ def ai_translate():
         '- 尺寸/重量单位保持原样：11mm 不变、1.02ct 不变、0.30ct x 12颗 → 0.30ct x 12pcs\n'
         '- 只输出一个 JSON 对象，key 与输入完全一致，value 为对应英文翻译\n'
         '- 不要任何解释、不要 markdown 代码块\n'
-        '输入：' + json.dumps(to_translate, ensure_ascii=False)
+        '输入：' + json.dumps(fields, ensure_ascii=False)
     )
-
     try:
         resp = requests.post(
             base_url + '/chat/completions',
@@ -1705,16 +1705,55 @@ def ai_translate():
         resp.raise_for_status()
         data = resp.json()
         content = data['choices'][0]['message']['content']
-        translated = json.loads(content)
-        return jsonify({'ok': True, 'data': translated})
+        return json.loads(content)
     except requests.exceptions.Timeout:
-        return jsonify({'error': '翻译超时，请重试'}), 504
+        raise _AITranslateError('翻译超时，请重试', 504)
     except requests.exceptions.RequestException as e:
         current_app.logger.error(f'DeepSeek 翻译调用失败: {e}')
-        return jsonify({'error': f'AI 服务调用失败: {e}'}), 502
+        raise _AITranslateError(f'AI 服务调用失败: {e}', 502)
     except (KeyError, IndexError, json.JSONDecodeError) as e:
         current_app.logger.error(f'DeepSeek 翻译返回解析失败: {e}')
-        return jsonify({'error': 'AI 返回格式异常，请重试'}), 502
+        raise _AITranslateError('AI 返回格式异常，请重试', 502)
+
+
+def _auto_translate_missing_en(product):
+    """成品保存后：中文字段有值而对应英文字段为空时，自动 AI 翻译补齐。
+    翻译失败静默（记日志），绝不阻塞主保存流程。已有人工英文时不覆盖。"""
+    zh_en = [('name', 'name_en'), ('material_desc', 'material_desc_en'),
+             ('main_stone', 'main_stone_en'), ('side_stones', 'side_stones_en')]
+    missing = {zh: getattr(product, zh) for zh, en in zh_en
+               if getattr(product, zh) and not getattr(product, en)}
+    if not missing:
+        return
+    try:
+        translated = _ai_translate_fields(missing)
+        changed = False
+        for zh, en in zh_en:
+            if getattr(product, en) or not (translated or {}).get(zh):
+                continue
+            setattr(product, en, str(translated[zh]).strip()[:500] or None)
+            changed = True
+        if changed:
+            db.session.commit()
+    except Exception:
+        db.session.rollback()
+        current_app.logger.warning(f'成品 #{product.id} 自动翻译失败（不影响保存）')
+
+
+@main_bp.route('/api/ai/translate', methods=['POST'])
+@login_required
+def ai_translate():
+    """AI 把中文字段翻译成英文（珠宝专业翻译，录入辅助，不落库）"""
+    payload = request.get_json(silent=True) or {}
+    fields = payload.get('fields', {})
+    to_translate = {k: v.strip() for k, v in fields.items() if isinstance(v, str) and v.strip()}
+    if not to_translate:
+        return jsonify({'error': '没有要翻译的内容'}), 400
+    try:
+        translated = _ai_translate_fields(to_translate)
+        return jsonify({'ok': True, 'data': translated})
+    except _AITranslateError as e:
+        return jsonify({'error': e.message}), e.status
 
 
 # ══════════════════════════════════════════════════════════
@@ -2042,8 +2081,8 @@ def paypal_create_order():
                 'amount': {'currency_code': currency, 'value': value},
             }],
             'application_context': {
-                'return_url': f'https://www.alicexie.com/checkout.html?paypal=success&order_no={order_no}',
-                'cancel_url': 'https://www.alicexie.com/checkout.html?paypal=cancel',
+                'return_url': 'https://www.alicexie.com' + ('/en' if '/en/' in request.headers.get('Referer', '') else '') + f'/checkout.html?paypal=success&order_no={order_no}',
+                'cancel_url': 'https://www.alicexie.com' + ('/en' if '/en/' in request.headers.get('Referer', '') else '') + '/checkout.html?paypal=cancel',
             },
         },
         timeout=30,
@@ -2195,7 +2234,7 @@ def alipay_create_order():
         'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
         'version': '1.0',
         'notify_url': 'https://stock.alicexie.com/api/public/alipay/notify',
-        'return_url': 'https://www.alicexie.com/checkout.html?alipay=success&order_no=' + order_no,
+        'return_url': 'https://www.alicexie.com' + ('/en' if '/en/' in request.headers.get('Referer', '') else '') + '/checkout.html?alipay=success&order_no=' + order_no,
         'biz_content': biz_content,
     }
     sign = _alipay_sign(params)
