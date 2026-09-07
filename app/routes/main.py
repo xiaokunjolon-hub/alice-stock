@@ -1871,7 +1871,7 @@ def _get_member_payload():
     token = request.cookies.get('member_token')
     if not token:
         return None
-    secret = os.environ.get('JWT_SECRET_KEY', 'alice-jwt-secret-change-in-production')
+    secret = os.environ['JWT_SECRET_KEY']
     try:
         return jwt.decode(token, secret, algorithms=['HS256'])
     except Exception:
@@ -1889,11 +1889,11 @@ def member_orders():
     """会员中心：查自己（登录会员）下的官网订单"""
     payload = _get_member_payload()
     if not payload or not payload.get('member_id'):
-        return redirect('https://custom.alicexie.com/alipay/login?next=https://stock.alicexie.com/member/orders')
+        return redirect('https://member.alicexie.com/member/login?next=https://stock.alicexie.com/member/orders')
     member_id = payload['member_id']
     nickname = payload.get('nickname')
     # 登录来源展示（旧 token 无 login_method 时显示中性文案）
-    login_label = {'alipay': '支付宝快捷登录', 'sms': '手机号快捷登录'}.get(
+    login_label = {'alipay': '支付宝快捷登录', 'sms': '手机号快捷登录', 'password': '密码登录', 'email': '邮箱快捷登录'}.get(
         payload.get('login_method'), '会员快捷登录')
     all_orders = CustomerOrder.query.filter_by(member_id=member_id).all()
     status_counts = {}
@@ -1952,7 +1952,7 @@ def public_member_me():
     token = request.cookies.get('member_token')
     if not token:
         return jsonify({'logged_in': False})
-    secret = os.environ.get('JWT_SECRET_KEY', 'alice-jwt-secret-change-in-production')
+    secret = os.environ['JWT_SECRET_KEY']
     try:
         payload = jwt.decode(token, secret, algorithms=['HS256'])
         return jsonify({'logged_in': True, 'member_id': payload.get('member_id'),

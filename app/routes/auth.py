@@ -11,7 +11,7 @@ from app.models import StockUser
 
 auth_bp = Blueprint('auth', __name__)
 
-JWT_SECRET_KEY = os.environ.get('STAFF_JWT_SECRET', 'alice-jwt-secret-change-in-production')
+JWT_SECRET_KEY = os.environ['STAFF_JWT_SECRET']
 
 
 def _decode_jwt():
